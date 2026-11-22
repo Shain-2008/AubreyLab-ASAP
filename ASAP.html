@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AubreyLab ASAP — Chemistry Peer-Reviewed ASAP Aggregator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            navy: {
+              900: '#0a1628',
+              800: '#102342',
+              700: '#1a365d',
+            },
+            teal: {
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Custom scrollbar for clean scientific dashboard feel */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    /* Smooth slide-over drawer transitions */
+    .drawer-backdrop {
+      transition: opacity 0.25s ease;
+    }
+    .drawer-panel {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* HTML sub/sup styling inside Crossref titles */
+    .article-title sub, .article-title sup {
+      font-size: 0.72em;
+      line-height: 0;
+    }
+    /* Hide scrollbar on horizontal journal tab strip while keeping smooth scroll */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Smooth fade-in for asynchronously resolved TOC / TOI graphics */
+    .toc-img-fade {
+      animation: tocFadeIn 0.28s ease-out forwards;
+    }
+    @keyframes tocFadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-teal-100 selection:text-teal-900">
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Official Publisher ASAP Launcher Bar -->
+  <div class="bg-navy-900 text-slate-200 border-b border-slate-800 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 font-medium text-teal-400">
+        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+        <span>Official Publisher ASAP / Early View Portals:</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <a href="https://pubs.acs.org/action/showMostRecentArticles" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 transition">
+          <span>ACS ASAP</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+        <a href="https://onlinelibrary.wiley.com/journal/15213773" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-sky-500/15 text-sky-300 hover:bg-sky-500/25 border border-sky-500/30 transition">
+          <span>Wiley Early View (Angew.)</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+        <a href="https://www.nature.com/nchem/research-articles" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 transition">
+          <span>Nature AOP</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+        <a href="https://pubs.rsc.org/en/journals/journalissues/sc#!recentarticles&adv" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 transition">
+          <span>RSC Advance Articles</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Header -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3.5 pb-2.5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <!-- Brand Logo & Title -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-navy-800 to-teal-700 text-white flex items-center justify-center shadow-sm">
+              <!-- Benzene Ring + Flask SVG Icon -->
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 20.66 7 20.66 17 12 22 3.34 17 3.34 7 12 2" />
+                <circle cx="12" cy="12" r="4" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-bold tracking-tight text-navy-900">Aubrey<span class="text-teal-600">Lab</span> <span class="text-navy-800 font-semibold">ASAP</span></h1>
+                <span id="live-status-badge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Crossref Live
+                </span>
+              </div>
+              <p class="text-xs text-slate-500">Peer-Reviewed Chemistry Early-View &amp; ASAP Feed Aggregator</p>
+            </div>
+          </div>
+
+          <!-- Mobile Drawer Trigger Buttons -->
+          <div class="flex md:hidden items-center gap-2">
+            <button onclick="openDrawer('journals')" class="p-2 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" title="Manage Journals">
+              <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+            </button>
+            <button onclick="openDrawer('bookmarks')" class="relative p-2 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" title="Reading List">
+              <i data-lucide="bookmark" class="w-4 h-4"></i>
+              <span id="mobile-bookmark-count" class="hidden absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Search & Action Controls -->
+        <div class="flex flex-wrap items-center gap-2.5 flex-1 md:max-w-2xl md:justify-end">
+          <!-- Instant Search Input -->
+          <div class="relative flex-1 min-w-[220px] max-w-md">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Filter title, author, keyword, or DOI..."
+              class="w-full pl-9 pr-8 py-2 text-sm bg-slate-100/80 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 transition"
+            />
+            <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Refresh Feed Button -->
+          <button
+            id="refresh-btn"
+            onclick="fetchAllActiveJournals(true)"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-2xs"
+            title="Refresh live articles from Crossref"
+          >
+            <i id="refresh-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-teal-600"></i>
+            <span class="hidden sm:inline">Refresh</span>
+          </button>
+
+          <!-- Manage Journals Drawer Button (Desktop) -->
+          <button
+            onclick="openDrawer('journals')"
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-2xs"
+          >
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-navy-700"></i>
+            <span>Customize Tabs (<span id="active-journal-count">23</span>)</span>
+          </button>
+
+          <!-- Reading List Drawer Button (Desktop) -->
+          <button
+            onclick="openDrawer('bookmarks')"
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-navy-800 text-white hover:bg-navy-700 transition shadow-xs"
+          >
+            <i data-lucide="bookmark" class="w-3.5 h-3.5 text-teal-300"></i>
+            <span>Reading List</span>
+            <span id="desktop-bookmark-count" class="ml-0.5 px-1.5 py-0.2 rounded-full bg-teal-600 text-white text-[11px] font-semibold">0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top-Level Browser-Style Journal Tabs Bar -->
+    <div class="bg-slate-100/90 border-t border-slate-200/80 pt-2">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-end gap-1.5">
+        <!-- Quick Search Box to Filter/Jump to Any Journal Tab -->
+        <div class="relative mb-1.5 shrink-0 w-36 sm:w-44">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          <input
+            id="tab-quick-search"
+            type="text"
+            placeholder="Find journal..."
+            oninput="handleTabQuickSearch(this.value)"
+            onkeydown="handleTabQuickSearchKeydown(event)"
+            class="w-full pl-7 pr-6 py-1 text-xs bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 transition"
+            title="Filter journal tabs or press Enter to jump directly to the first matching journal"
+          />
+          <button
+            id="clear-tab-search-btn"
+            type="button"
+            onclick="clearTabQuickSearch()"
+            class="hidden absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            title="Clear journal filter"
+          >
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </div>
+
+        <!-- Left Scroll Button -->
+        <button
+          type="button"
+          onclick="scrollJournalTabs(-260)"
+          class="mb-1.5 p-1.5 rounded-md text-slate-500 hover:text-navy-900 hover:bg-white border border-transparent hover:border-slate-200 transition shrink-0"
+          title="Scroll journal tabs left"
+        >
+          <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <!-- Horizontally Scrollable Tab Strip -->
+        <div id="journal-tabs-bar" role="tablist" aria-label="Chemistry Journals" class="flex items-end gap-1 overflow-x-auto no-scrollbar scroll-smooth flex-1">
+          <!-- Rendered dynamically via renderJournalTabs() -->
+        </div>
+
+        <!-- Right Scroll Button -->
+        <button
+          type="button"
+          onclick="scrollJournalTabs(260)"
+          class="mb-1.5 p-1.5 rounded-md text-slate-500 hover:text-navy-900 hover:bg-white border border-transparent hover:border-slate-200 transition shrink-0"
+          title="Scroll journal tabs right"
+        >
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <!-- '+' Quick Add / Customize Journal Tab Button -->
+        <button
+          onclick="openDrawer('journals')"
+          class="mb-1.5 px-2.5 py-1 rounded-lg text-slate-600 hover:text-navy-900 bg-white/80 hover:bg-white border border-slate-200 transition shrink-0 flex items-center gap-1 text-xs font-medium shadow-2xs"
+          title="Add a permanent custom journal by ISSN, reorder tabs, or uncheck journals"
+        >
+          <i data-lucide="plus" class="w-3.5 h-3.5 text-teal-600"></i>
+          <span>Add / Edit Tabs</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Active Tab Context & Secondary Filter Controls Bar -->
+  <section class="bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Left: Active Journal Header OR Global Publisher/Field Filter Pills -->
+        <div class="flex-1">
+          <!-- Context header shown when a specific journal tab is selected -->
+          <div id="active-tab-banner" class="hidden flex flex-wrap items-center gap-2.5">
+            <span id="active-tab-publisher-badge" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border"></span>
+            <span id="active-tab-title" class="text-sm font-bold text-navy-900"></span>
+            <span id="active-tab-issn" class="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded"></span>
+            <a id="active-tab-asap-link" href="#" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-800 hover:underline ml-1">
+              <span>Official Publisher ASAP Page</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+            <button
+              type="button"
+              onclick="uncheckActiveJournalTab()"
+              class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-2 py-0.5 rounded transition ml-1"
+              title="Uncheck and hide this journal from the top tab bar"
+            >
+              <i data-lucide="eye-off" class="w-3 h-3"></i>
+              <span>Remove Tab</span>
+            </button>
+          </div>
+
+          <!-- Publisher & Sub-Discipline Filters shown when 'All Journals' tab is active -->
+          <div id="all-tab-filters" class="flex flex-wrap items-center gap-y-2 gap-x-4">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">Publisher:</span>
+              <div id="publisher-filters" class="flex flex-wrap gap-1">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <div class="hidden sm:block h-4 w-px bg-slate-200"></div>
+
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">Field:</span>
+              <div id="discipline-filters" class="flex flex-wrap gap-1">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: View Mode Switcher (Card Grid vs Compact Table/List) -->
+        <div class="flex items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+          <!-- Toggle TOC / Graphical Abstract (TOI) Previews -->
+          <button
+            id="toggle-toc-btn"
+            type="button"
+            onclick="toggleShowToc()"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition bg-teal-50 text-teal-800 border-teal-200"
+            title="Show or hide Table of Contents (TOI) graphics when available on the publisher site"
+          >
+            <i data-lucide="image" class="w-3.5 h-3.5 text-teal-600"></i>
+            <span>TOI Graphics: <strong id="toc-toggle-label">On</strong></span>
+          </button>
+
+          <span class="text-xs text-slate-400 hidden sm:inline">Layout:</span>
+          <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200" role="group">
+            <button
+              id="view-cards-btn"
+              onclick="setViewMode('cards')"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition bg-white text-navy-900 shadow-2xs"
+              title="Card Grid View"
+            >
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+              <span>Cards</span>
+            </button>
+            <button
+              id="view-table-btn"
+              onclick="setViewMode('table')"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition text-slate-600 hover:text-slate-900"
+              title="Compact Feed Table View"
+            >
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+              <span>Compact</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time Travel & Date Window Bar -->
+      <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">
+            <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-teal-600"></i>
+            <span>Time Window:</span>
+          </span>
+          <div id="time-preset-pills" class="flex flex-wrap items-center gap-1">
+            <!-- Rendered dynamically via renderTimeControls() -->
+          </div>
+        </div>
+
+        <!-- Custom Specific Date Picker & Quick Step Controls -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <label for="specific-date-input" class="text-[11px] font-medium text-slate-500">Jump to date:</label>
+          <div class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-teal-600/30 focus-within:border-teal-600">
+            <button
+              type="button"
+              onclick="stepDate(-1)"
+              class="px-2 py-1 text-slate-500 hover:text-navy-900 hover:bg-slate-200/60 transition"
+              title="Previous Day"
+            >
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+            <input
+              id="specific-date-input"
+              type="date"
+              onchange="selectSpecificDate(this.value)"
+              class="bg-transparent px-2 py-1 text-xs font-mono text-slate-800 focus:outline-none"
+            />
+            <button
+              type="button"
+              onclick="stepDate(1)"
+              class="px-2 py-1 text-slate-500 hover:text-navy-900 hover:bg-slate-200/60 transition"
+              title="Next Day"
+            >
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <span id="active-date-range-badge" class="hidden text-[11px] font-mono px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Status & Summary Header -->
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+      <div class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+        <span id="results-summary" class="font-medium">Loading latest chemistry ASAP publications...</span>
+        <span id="fallback-notice" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-900 border border-amber-200 text-[11px]">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+          <span id="fallback-notice-text">Some feeds were temporarily rate-limited by Crossref. Click Refresh to reload this journal.</span>
+          <button type="button" onclick="fetchAllActiveJournals(true)" class="ml-1 underline font-semibold text-amber-950 hover:text-teal-800">
+            Retry now
+          </button>
+        </span>
+      </div>
+      <div class="text-xs text-slate-400 font-mono" id="last-updated-label"></div>
+    </div>
+
+    <!-- Loading Skeleton Grid -->
+    <div id="loading-skeleton" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Populated via JS on load -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden bg-white rounded-xl border border-slate-200 p-12 text-center max-w-lg mx-auto my-8">
+      <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="flask-conical-off" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-base font-semibold text-slate-900 mb-1">No matching ASAP articles found</h3>
+      <p class="text-sm text-slate-500 mb-4">Try clearing your search query, selecting a different publisher/field filter, or enabling more journals in the Journal Manager.</p>
+      <button onclick="resetAllFilters()" class="px-4 py-2 rounded-lg bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 transition">
+        Reset All Filters
+      </button>
+    </div>
+
+    <!-- Card Grid Container -->
+    <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <!-- Compact Table Container -->
+    <div id="articles-table-wrapper" class="hidden bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <th class="py-3 px-4 w-36">Journal</th>
+              <th class="py-3 px-4">Article Title &amp; Authors</th>
+              <th class="py-3 px-4 w-36 hidden md:table-cell">DOI</th>
+              <th class="py-3 px-4 w-28 hidden sm:table-cell">Published</th>
+              <th class="py-3 px-4 w-28 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="articles-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Slide-Over Drawer Backdrop -->
+  <div id="drawer-backdrop" onclick="closeAllDrawers()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 hidden opacity-0 drawer-backdrop"></div>
+
+  <!-- Drawer 1: Journal Toggle & Custom ISSN Manager -->
+  <aside id="journals-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 translate-x-full drawer-panel flex flex-col border-l border-slate-200">
+    <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div>
+        <h2 class="text-base font-bold text-navy-900 flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-teal-600"></i>
+          <span>Journal Feed Manager</span>
+        </h2>
+        <p class="text-xs text-slate-500">Toggle active ASAP feeds or add any journal by ISSN</p>
+      </div>
+      <button onclick="closeAllDrawers()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Add Custom Journal by ISSN Form -->
+    <div class="p-4 bg-teal-50/60 border-b border-teal-100">
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="block text-xs font-semibold text-navy-900">Add Permanent Custom Journal by ISSN</label>
+        <span class="text-[10px] font-medium text-teal-700 bg-teal-100/80 px-1.5 py-0.5 rounded">Saved Permanently</span>
+      </div>
+      <form id="add-issn-form" onsubmit="handleAddCustomJournal(event)" class="space-y-2">
+        <div class="flex gap-2">
+          <input
+            id="custom-issn-input"
+            type="text"
+            placeholder="ISSN e.g. 1520-586X"
+            required
+            class="w-36 px-3 py-2 text-xs font-mono bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600"
+          />
+          <input
+            id="custom-abbrev-input"
+            type="text"
+            placeholder="Optional tab label (e.g. OPRD)"
+            class="flex-1 px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600"
+          />
+        </div>
+        <div class="flex gap-2">
+          <select id="custom-discipline-select" class="flex-1 px-2.5 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-700 focus:outline-none">
+            <option value="General Chemistry">Field: General Chemistry</option>
+            <option value="Organic">Field: Organic</option>
+            <option value="Catalysis">Field: Catalysis</option>
+            <option value="Inorganic">Field: Inorganic</option>
+            <option value="Synthesis">Field: Synthesis</option>
+          </select>
+          <button
+            id="add-issn-btn"
+            type="submit"
+            class="px-3.5 py-2 rounded-lg bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 transition shrink-0 inline-flex items-center gap-1"
+          >
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add to Tabs</span>
+          </button>
+        </div>
+      </form>
+      <div class="mt-2.5">
+        <span class="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Quick-Add More Chemistry Journals:</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="quickAddPresetJournal('1520-586X', 'Organic Process Research & Development', 'OPRD', 'ACS', 'Synthesis')" class="px-2 py-1 rounded bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-700 transition">+ OPRD</button>
+          <button type="button" onclick="quickAddPresetJournal('1520-5215', 'Journal of the American Society for Mass Spectrometry', 'JASMS', 'ACS', 'General Chemistry')" class="px-2 py-1 rounded bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-700 transition">+ JASMS</button>
+          <button type="button" onclick="quickAddPresetJournal('1520-6041', 'Organometallics', 'Organometallics', 'ACS', 'Inorganic')" class="px-2 py-1 rounded bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-700 transition">+ Organometallics</button>
+          <button type="button" onclick="quickAddPresetJournal('2046-2069', 'RSC Advances', 'RSC Adv.', 'RSC', 'General Chemistry')" class="px-2 py-1 rounded bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-700 transition">+ RSC Adv.</button>
+          <button type="button" onclick="quickAddPresetJournal('1615-4169', 'Advanced Synthesis & Catalysis', 'Adv. Synth. Catal.', 'Wiley', 'Catalysis')" class="px-2 py-1 rounded bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-700 transition">+ Adv. Synth. Catal.</button>
+        </div>
+      </div>
+
+      <!-- Collapsible ISSN Lookup Directory (ACS, Wiley, Nature, RSC) -->
+      <div class="mt-3 pt-2.5 border-t border-teal-200/70">
+        <button
+          type="button"
+          onclick="toggleIssnDirectory()"
+          class="w-full flex items-center justify-between text-left text-[11px] font-semibold text-navy-900 hover:text-teal-700 transition"
+        >
+          <span class="inline-flex items-center gap-1.5">
+            <i data-lucide="book-open" class="w-3.5 h-3.5 text-teal-600"></i>
+            <span>Browse Journal ISSN Directory (ACS, Wiley, Nature, RSC)</span>
+          </span>
+          <i id="issn-directory-chevron" data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500 transition-transform"></i>
+        </button>
+
+        <div id="issn-directory-panel" class="hidden mt-2 space-y-2">
+          <div class="flex gap-1.5">
+            <input
+              id="issn-directory-search"
+              type="text"
+              placeholder="Search journal or ISSN..."
+              oninput="renderIssnDirectory()"
+              class="flex-1 px-2.5 py-1 text-[11px] bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600"
+            />
+            <select
+              id="issn-directory-pub"
+              onchange="renderIssnDirectory()"
+              class="px-2 py-1 text-[11px] bg-white border border-slate-300 rounded-md text-slate-700 focus:outline-none"
+            >
+              <option value="ALL">All Pubs</option>
+              <option value="ACS">ACS</option>
+              <option value="Wiley">Wiley</option>
+              <option value="Nature">Nature</option>
+              <option value="RSC">RSC</option>
+            </select>
+          </div>
+          <div id="issn-directory-list" class="max-h-48 overflow-y-auto divide-y divide-slate-100 bg-white rounded-lg border border-slate-200 px-2.5">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Bulk Actions & Manager Filter -->
+    <div class="px-5 py-2.5 border-b border-slate-100 bg-white space-y-2">
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slate-600 font-semibold">Check / Uncheck Top Tabs</span>
+        <div class="flex items-center gap-3">
+          <button onclick="toggleAllJournals(true)" class="text-teal-600 hover:text-teal-700 font-medium">Check All</button>
+          <span class="text-slate-300">|</span>
+          <button onclick="toggleAllJournals(false)" class="text-slate-500 hover:text-slate-700 font-medium">Uncheck All</button>
+        </div>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        Unchecking a journal automatically moves it to the bottom of the list.
+      </div>
+      <div class="relative">
+        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        <input
+          id="manager-filter-input"
+          type="text"
+          placeholder="Search journals in list to check/uncheck..."
+          oninput="updateJournalManagerList(this.value)"
+          class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600"
+        />
+      </div>
+    </div>
+
+    <!-- Journal Checklist -->
+    <div id="journal-manager-list" class="flex-1 overflow-y-auto divide-y divide-slate-100 px-5">
+      <!-- Rendered dynamically -->
+    </div>
+
+    <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+      <button onclick="resetDefaultJournals()" class="text-xs text-slate-500 hover:text-slate-800 underline">
+        Restore All Default Journals
+      </button>
+      <button onclick="closeAllDrawers()" class="px-4 py-2 rounded-lg bg-navy-800 text-white text-xs font-medium hover:bg-navy-700 transition">
+        Done
+      </button>
+    </div>
+  </aside>
+
+  <!-- Drawer 2: Reading List & Citation Export (BibTeX / RIS) -->
+  <aside id="bookmarks-drawer" class="fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50 translate-x-full drawer-panel flex flex-col border-l border-slate-200">
+    <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div>
+        <h2 class="text-base font-bold text-navy-900 flex items-center gap-2">
+          <i data-lucide="bookmark" class="w-4 h-4 text-teal-600"></i>
+          <span>Saved Reading List</span>
+        </h2>
+        <p class="text-xs text-slate-500">Persisted locally with 1-click BibTeX &amp; RIS citation export</p>
+      </div>
+      <button onclick="closeAllDrawers()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Batch Export Toolbar -->
+    <div id="bookmark-export-bar" class="px-5 py-3 bg-slate-100/80 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+      <span class="text-xs font-medium text-slate-700"><span id="drawer-bookmark-total">0</span> saved papers</span>
+      <div class="flex items-center gap-2">
+        <button onclick="exportAllBookmarks('bibtex')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-teal-600"></i>
+          <span>Export .BIB</span>
+        </button>
+        <button onclick="exportAllBookmarks('ris')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
+          <i data-lucide="file-text" class="w-3.5 h-3.5 text-navy-700"></i>
+          <span>Export .RIS</span>
+        </button>
+        <button onclick="clearAllBookmarks()" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Clear Reading List">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Saved Papers List -->
+    <div id="bookmarks-list" class="flex-1 overflow-y-auto p-4 space-y-3">
+      <!-- Rendered dynamically -->
+    </div>
+  </aside>
+
+  <!-- Hidden textarea for reliable clipboard fallback -->
+  <textarea id="clipboard-helper" class="fixed -top-96 -left-96 opacity-0" aria-hidden="true"></textarea>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. CURATED CHEMISTRY JOURNALS & METADATA
+     * ============================================================================
+     */
+    const DEFAULT_JOURNALS = [
+      {
+        issn: '1520-5126',
+        name: 'Journal of the American Chemical Society',
+        shortName: 'J. Am. Chem. Soc.',
+        abbrev: 'JACS',
+        publisher: 'ACS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.acs.org/toc/jacsat/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1521-3773',
+        name: 'Angewandte Chemie International Edition',
+        shortName: 'Angew. Chem. Int. Ed.',
+        abbrev: 'Angew. Chem.',
+        publisher: 'Wiley',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://onlinelibrary.wiley.com/toc/15213773/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1755-4349',
+        name: 'Nature Chemistry',
+        shortName: 'Nat. Chem.',
+        abbrev: 'Nat. Chem.',
+        publisher: 'Nature',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://www.nature.com/nchem/research-articles',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1476-4687',
+        name: 'Nature',
+        shortName: 'Nature',
+        abbrev: 'Nature',
+        publisher: 'Nature',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://www.nature.com/nature/research-articles',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1095-9203',
+        name: 'Science',
+        shortName: 'Science',
+        abbrev: 'Science',
+        publisher: 'AAAS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://www.science.org/toc/science/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1091-6490',
+        name: 'Proceedings of the National Academy of Sciences',
+        shortName: 'PNAS',
+        abbrev: 'PNAS',
+        publisher: 'NAS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://www.pnas.org/toc/pnas/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '2041-6539',
+        name: 'Chemical Science',
+        shortName: 'Chem. Sci.',
+        abbrev: 'Chem. Sci.',
+        publisher: 'RSC',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/sc#!recentarticles&adv',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '2451-9294',
+        name: 'Chem',
+        shortName: 'Chem',
+        abbrev: 'Chem',
+        publisher: 'Cell Press',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://www.cell.com/chem/inpress',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1523-7052',
+        name: 'Organic Letters',
+        shortName: 'Org. Lett.',
+        abbrev: 'Org. Lett.',
+        publisher: 'ACS',
+        discipline: 'Organic',
+        asapUrl: 'https://pubs.acs.org/toc/orlef7/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1520-6904',
+        name: 'The Journal of Organic Chemistry',
+        shortName: 'J. Org. Chem.',
+        abbrev: 'JOC',
+        publisher: 'ACS',
+        discipline: 'Organic',
+        asapUrl: 'https://pubs.acs.org/toc/joceah/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '2155-5435',
+        name: 'ACS Catalysis',
+        shortName: 'ACS Catal.',
+        abbrev: 'ACS Catal.',
+        publisher: 'ACS',
+        discipline: 'Catalysis',
+        asapUrl: 'https://pubs.acs.org/toc/accacs/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1364-548X',
+        name: 'Chemical Communications',
+        shortName: 'Chem. Commun.',
+        abbrev: 'ChemComm',
+        publisher: 'RSC',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/cc#!recentarticles&adv',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1520-510X',
+        name: 'Inorganic Chemistry',
+        shortName: 'Inorg. Chem.',
+        abbrev: 'Inorg. Chem.',
+        publisher: 'ACS',
+        discipline: 'Inorganic',
+        asapUrl: 'https://pubs.acs.org/toc/inocaj/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '2731-0582',
+        name: 'Nature Synthesis',
+        shortName: 'Nat. Synth.',
+        abbrev: 'Nat. Synth.',
+        publisher: 'Nature',
+        discipline: 'Synthesis',
+        asapUrl: 'https://www.nature.com/natsynth/research-articles',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1520-4898',
+        name: 'Accounts of Chemical Research',
+        shortName: 'Acc. Chem. Res.',
+        abbrev: 'Acc. Chem. Res.',
+        publisher: 'ACS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.acs.org/toc/achre4/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1520-6890',
+        name: 'Chemical Reviews',
+        shortName: 'Chem. Rev.',
+        abbrev: 'Chem. Rev.',
+        publisher: 'ACS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.acs.org/toc/chreay/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1520-4804',
+        name: 'Journal of Medicinal Chemistry',
+        shortName: 'J. Med. Chem.',
+        abbrev: 'J. Med. Chem.',
+        publisher: 'ACS',
+        discipline: 'Organic',
+        asapUrl: 'https://pubs.acs.org/toc/jmcmar/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1936-086X',
+        name: 'ACS Nano',
+        shortName: 'ACS Nano',
+        abbrev: 'ACS Nano',
+        publisher: 'ACS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.acs.org/toc/ancac3/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1463-9270',
+        name: 'Green Chemistry',
+        shortName: 'Green Chem.',
+        abbrev: 'Green Chem.',
+        publisher: 'RSC',
+        discipline: 'Synthesis',
+        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/gc#!recentarticles&adv',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1520-5002',
+        name: 'Chemistry of Materials',
+        shortName: 'Chem. Mater.',
+        abbrev: 'Chem. Mater.',
+        publisher: 'ACS',
+        discipline: 'Inorganic',
+        asapUrl: 'https://pubs.acs.org/toc/cmatex/0/0',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1477-0539',
+        name: 'Organic & Biomolecular Chemistry',
+        shortName: 'Org. Biomol. Chem.',
+        abbrev: 'OBC',
+        publisher: 'RSC',
+        discipline: 'Organic',
+        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/ob#!recentarticles&adv',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1477-9234',
+        name: 'Dalton Transactions',
+        shortName: 'Dalton Trans.',
+        abbrev: 'Dalton Trans.',
+        publisher: 'RSC',
+        discipline: 'Inorganic',
+        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/dt#!recentarticles&adv',
+        enabled: true,
+        custom: false
+      },
+      {
+        issn: '1948-7185',
+        name: 'The Journal of Physical Chemistry Letters',
+        shortName: 'J. Phys. Chem. Lett.',
+        abbrev: 'JPCL',
+        publisher: 'ACS',
+        discipline: 'General Chemistry',
+        asapUrl: 'https://pubs.acs.org/toc/jpclcd/0/0',
+        enabled: true,
+        custom: false
+      }
+    ];
+
+    /**
+     * Fallback cached recent ASAP papers used only if Crossref rate-limits or a network error occurs
+     */
+    const FALLBACK_ARTICLES = [
+      {
+        doi: '10.1021/jacs.5c01420',
+        title: 'Enantioselective Electrochemical C(sp<sup>3</sup>)–H Amination of Unactivated Alkanes via Dual Nickel/Photoredox Catalysis',
+        authors: ['Elena R. Vance', 'Marcus K. Thorne', 'Hiroshi Takahashi', 'David W. MacMillan'],
+        issn: '1520-5126',
+        publishedDate: '2026-11-20',
+        timestamp: Date.now() - 3600 * 1000 * 14,
+        url: 'https://doi.org/10.1021/jacs.5c01420',
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1002/anie.202609812',
+        title: 'Isolable Room-Temperature Stable Bismuthinidene Radical Cations: Electronic Structure and Reversible Small-Molecule Activation',
+        authors: ['Lukas Lindner', 'Sophie M. Weber', 'Crispin Lichtenberg'],
+        issn: '1521-3773',
+        publishedDate: '2026-11-20',
+        timestamp: Date.now() - 3600 * 1000 * 18,
+        url: 'https://doi.org/10.1002/anie.202609812',
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1038/s41557-026-01944-x',
+        title: 'Programmable Skeletal Editing of Pyridines into Pyrimidines via Nitrogen-Atom Insertion',
+        authors: ['Clara Jin', 'Rohan Patel', 'Richmond Sarpong'],
+        issn: '1755-4349',
+        publishedDate: '2026-11-19',
+        timestamp: Date.now() - 3600 * 1000 * 28,
+        url: 'https://doi.org/10.1038/s41557-026-01944-x',
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1039/D6SC04821A',
+        title: 'Machine-Learning-Guided Discovery of Cooperative Frustrated Lewis Pairs for Direct CO<sub>2</sub> Hydrogenation to Methanol',
+        authors: ['Amelia G. Foster', 'Wei-Lin Chen', 'Douglas W. Stephan'],
+        issn: '2041-6539',
+        publishedDate: '2026-11-19',
+        timestamp: Date.now() - 3600 * 1000 * 32,
+        url: 'https://doi.org/10.1039/D6SC04821A',
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1021/acs.orglett.6c03109',
+        title: 'Atroposelective Synthesis of Axially Chiral Biaryl N-Oxides via Chiral Phosphoric Acid-Catalyzed N-Oxidation',
+        authors: ['Kenji Sato', 'Yuki Morita', 'Scott J. Miller'],
+        issn: '1523-7052',
+        publishedDate: '2026-11-18',
+        timestamp: Date.now() - 3600 * 1000 * 44,
+        url: 'https://doi.org/10.1021/acs.orglett.6c03109',
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1021/acscatal.6c05211',
+        title: 'Single-Atom Ru<sub>1</sub>/CeO<sub>2</sub> Catalysts with Dynamic Oxygen Vacancies for Low-Temperature Ammonia Synthesis',
+        authors: ['Hannah M. Lind', 'Takeshi Mori', 'Chorkendorff Ib'],
+        issn: '2155-5435',
+        publishedDate: '2026-11-18',
+        timestamp: Date.now() - 3600 * 1000 * 50,
+        url: 'https://doi.org/10.1021/acscatal.6c05211',
+        type: 'journal-article',
+        isFallback: true
+      }
+    ];
+
+    const STORAGE_KEYS = {
+      JOURNALS: 'aubrey_asap_journals_v1',
+      CUSTOM_JOURNALS: 'aubrey_asap_custom_journals_v1',
+      BOOKMARKS: 'aubrey_asap_bookmarks_v1',
+      VIEW_MODE: 'aubrey_asap_view_mode_v1',
+      SHOW_TOC: 'aubrey_asap_show_toc_v1'
+    };
+
+    const ISSN_DIRECTORY_CATALOG = [
+      // ACS
+      { issn: '1520-5126', name: 'Journal of the American Chemical Society', abbrev: 'JACS', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1523-7052', name: 'Organic Letters', abbrev: 'Org. Lett.', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '1520-6904', name: 'The Journal of Organic Chemistry', abbrev: 'JOC', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '2155-5435', name: 'ACS Catalysis', abbrev: 'ACS Catal.', publisher: 'ACS', discipline: 'Catalysis' },
+      { issn: '1520-510X', name: 'Inorganic Chemistry', abbrev: 'Inorg. Chem.', publisher: 'ACS', discipline: 'Inorganic' },
+      { issn: '1520-4898', name: 'Accounts of Chemical Research', abbrev: 'Acc. Chem. Res.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-6890', name: 'Chemical Reviews', abbrev: 'Chem. Rev.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-4804', name: 'Journal of Medicinal Chemistry', abbrev: 'J. Med. Chem.', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '1936-086X', name: 'ACS Nano', abbrev: 'ACS Nano', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-5002', name: 'Chemistry of Materials', abbrev: 'Chem. Mater.', publisher: 'ACS', discipline: 'Inorganic' },
+      { issn: '1948-7185', name: 'The Journal of Physical Chemistry Letters', abbrev: 'JPCL', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-586X', name: 'Organic Process Research & Development', abbrev: 'OPRD', publisher: 'ACS', discipline: 'Synthesis' },
+      { issn: '1520-6041', name: 'Organometallics', abbrev: 'Organometallics', publisher: 'ACS', discipline: 'Inorganic' },
+      { issn: '2330-443X', name: 'ACS Central Science', abbrev: 'ACS Cent. Sci.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2161-1653', name: 'ACS Synthetic Biology', abbrev: 'ACS Synth. Biol.', publisher: 'ACS', discipline: 'Synthesis' },
+      { issn: '1520-6882', name: 'Analytical Chemistry', abbrev: 'Anal. Chem.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-5827', name: 'Langmuir', abbrev: 'Langmuir', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-5835', name: 'Macromolecules', abbrev: 'Macromolecules', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1525-7797', name: 'Biomacromolecules', abbrev: 'Biomacromolecules', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1554-8937', name: 'ACS Chemical Biology', abbrev: 'ACS Chem. Biol.', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '1528-7505', name: 'Crystal Growth & Design', abbrev: 'Cryst. Growth Des.', publisher: 'ACS', discipline: 'Inorganic' },
+      { issn: '1520-5029', name: 'Energy & Fuels', abbrev: 'Energy Fuels', publisher: 'ACS', discipline: 'Catalysis' },
+      { issn: '1530-6984', name: 'Nano Letters', abbrev: 'Nano Lett.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1944-8244', name: 'ACS Applied Materials & Interfaces', abbrev: 'ACS Appl. Mater. Interfaces', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2470-1343', name: 'ACS Energy Letters', abbrev: 'ACS Energy Lett.', publisher: 'ACS', discipline: 'Catalysis' },
+      { issn: '1520-5053', name: 'Environmental Science & Technology', abbrev: 'Environ. Sci. Technol.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2328-8930', name: 'Environmental Science & Technology Letters', abbrev: 'Environ. Sci. Technol. Lett.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2168-0485', name: 'ACS Sustainable Chemistry & Engineering', abbrev: 'ACS Sustain. Chem. Eng.', publisher: 'ACS', discipline: 'Synthesis' },
+      { issn: '1549-960X', name: 'Journal of Chemical Information and Modeling', abbrev: 'J. Chem. Inf. Model.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1549-9626', name: 'Journal of Chemical Theory and Computation', abbrev: 'J. Chem. Theory Comput.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-6025', name: 'Journal of Natural Products', abbrev: 'J. Nat. Prod.', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '1543-8392', name: 'Molecular Pharmaceutics', abbrev: 'Mol. Pharmaceutics', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '1520-5215', name: 'Journal of the American Society for Mass Spectrometry', abbrev: 'JASMS', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2694-2437', name: 'JACS Au', abbrev: 'JACS Au', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2694-247X', name: 'ACS Organic & Inorganic Au', abbrev: 'ACS Org. Inorg. Au', publisher: 'ACS', discipline: 'Synthesis' },
+      { issn: '2694-2429', name: 'ACS Bio & Med Chem Au', abbrev: 'ACS Bio Med Chem Au', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '2694-2496', name: 'ACS Physical Chem Au', abbrev: 'ACS Phys. Chem Au', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '2694-2453', name: 'ACS Materials Au', abbrev: 'ACS Mater. Au', publisher: 'ACS', discipline: 'Inorganic' },
+      // Wiley
+      { issn: '1521-3773', name: 'Angewandte Chemie International Edition', abbrev: 'Angew. Chem.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1521-3765', name: 'Chemistry – A European Journal', abbrev: 'Chem. Eur. J.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1615-4169', name: 'Advanced Synthesis & Catalysis', abbrev: 'Adv. Synth. Catal.', publisher: 'Wiley', discipline: 'Catalysis' },
+      { issn: '1864-564X', name: 'ChemSusChem', abbrev: 'ChemSusChem', publisher: 'Wiley', discipline: 'Catalysis' },
+      { issn: '2196-0216', name: 'ChemElectroChem', abbrev: 'ChemElectroChem', publisher: 'Wiley', discipline: 'Catalysis' },
+      { issn: '1861-471X', name: 'ChemCatChem', abbrev: 'ChemCatChem', publisher: 'Wiley', discipline: 'Catalysis' },
+      { issn: '1612-1023', name: 'ChemMedChem', abbrev: 'ChemMedChem', publisher: 'Wiley', discipline: 'Organic' },
+      { issn: '1099-0690', name: 'European Journal of Organic Chemistry', abbrev: 'EurJOC', publisher: 'Wiley', discipline: 'Organic' },
+      { issn: '1099-0682', name: 'European Journal of Inorganic Chemistry', abbrev: 'EurJIC', publisher: 'Wiley', discipline: 'Inorganic' },
+      { issn: '1613-6829', name: 'Small', abbrev: 'Small', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1614-7065', name: 'Advanced Functional Materials', abbrev: 'Adv. Funct. Mater.', publisher: 'Wiley', discipline: 'Inorganic' },
+      { issn: '1521-4095', name: 'Advanced Materials', abbrev: 'Adv. Mater.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1521-3935', name: 'Macromolecular Chemistry and Physics', abbrev: 'Macromol. Chem. Phys.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1521-3927', name: 'Macromolecular Rapid Communications', abbrev: 'Macromol. Rapid Commun.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      // Nature
+      { issn: '1755-4349', name: 'Nature Chemistry', abbrev: 'Nat. Chem.', publisher: 'Nature', discipline: 'General Chemistry' },
+      { issn: '1476-4687', name: 'Nature', abbrev: 'Nature', publisher: 'Nature', discipline: 'General Chemistry' },
+      { issn: '2731-0582', name: 'Nature Synthesis', abbrev: 'Nat. Synth.', publisher: 'Nature', discipline: 'Synthesis' },
+      { issn: '2522-5839', name: 'Nature Catalysis', abbrev: 'Nat. Catal.', publisher: 'Nature', discipline: 'Catalysis' },
+      { issn: '1476-4660', name: 'Nature Materials', abbrev: 'Nat. Mater.', publisher: 'Nature', discipline: 'Inorganic' },
+      { issn: '1755-4330', name: 'Nature Geoscience', abbrev: 'Nat. Geosci.', publisher: 'Nature', discipline: 'General Chemistry' },
+      { issn: '2041-1723', name: 'Nature Communications', abbrev: 'Nat. Commun.', publisher: 'Nature', discipline: 'General Chemistry' },
+      // RSC
+      { issn: '2041-6539', name: 'Chemical Science', abbrev: 'Chem. Sci.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1364-548X', name: 'Chemical Communications', abbrev: 'ChemComm', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1460-4744', name: 'Chemical Society Reviews', abbrev: 'Chem. Soc. Rev.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1463-9270', name: 'Green Chemistry', abbrev: 'Green Chem.', publisher: 'RSC', discipline: 'Synthesis' },
+      { issn: '1477-0539', name: 'Organic & Biomolecular Chemistry', abbrev: 'OBC', publisher: 'RSC', discipline: 'Organic' },
+      { issn: '1477-9234', name: 'Dalton Transactions', abbrev: 'Dalton Trans.', publisher: 'RSC', discipline: 'Inorganic' },
+      { issn: '2051-6355', name: 'Materials Horizons', abbrev: 'Mater. Horiz.', publisher: 'RSC', discipline: 'Materials Science' },
+      { issn: '2044-4761', name: 'Catalysis Science & Technology', abbrev: 'Catal. Sci. Technol.', publisher: 'RSC', discipline: 'Catalysis' },
+      { issn: '1364-5528', name: 'The Analyst', abbrev: 'Analyst', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '2046-2069', name: 'RSC Advances', abbrev: 'RSC Adv.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1463-9084', name: 'Physical Chemistry Chemical Physics', abbrev: 'PCCP', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1364-5463', name: 'Journal of Materials Chemistry', abbrev: 'J. Mater. Chem.', publisher: 'RSC', discipline: 'Inorganic' },
+      { issn: '2050-7488', name: 'Journal of Materials Chemistry A', abbrev: 'J. Mater. Chem. A', publisher: 'RSC', discipline: 'Catalysis' },
+      { issn: '2050-7526', name: 'Journal of Materials Chemistry B', abbrev: 'J. Mater. Chem. B', publisher: 'RSC', discipline: 'Organic' },
+      { issn: '2050-750X', name: 'Journal of Materials Chemistry C', abbrev: 'J. Mater. Chem. C', publisher: 'RSC', discipline: 'Inorganic' },
+      { issn: '1754-5692', name: 'Energy & Environmental Science', abbrev: 'Energy Environ. Sci.', publisher: 'RSC', discipline: 'Catalysis' },
+      { issn: '1460-2733', name: 'Faraday Discussions', abbrev: 'Faraday Discuss.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1751-8113', name: 'Nanoscale', abbrev: 'Nanoscale', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '2040-3364', name: 'Nanoscale Advances', abbrev: 'Nanoscale Adv.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1759-9954', name: 'Polymer Chemistry', abbrev: 'Polym. Chem.', publisher: 'RSC', discipline: 'Synthesis' },
+      { issn: '1364-5501', name: 'New Journal of Chemistry', abbrev: 'New J. Chem.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1466-8033', name: 'Soft Matter', abbrev: 'Soft Matter', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1463-905X', name: 'Photochemical & Photobiological Sciences', abbrev: 'Photochem. Photobiol. Sci.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1473-0189', name: 'Lab on a Chip', abbrev: 'Lab Chip', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1757-8981', name: 'ChemSocRev / RSC Chemical Biology', abbrev: 'RSC Chem. Biol.', publisher: 'RSC', discipline: 'Organic' },
+      { issn: '2632-8682', name: 'Sensors & Diagnostics', abbrev: 'Sens. Diagn.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '2755-2608', name: 'RSC Sustainability', abbrev: 'RSC Sustain.', publisher: 'RSC', discipline: 'Synthesis' }
+    ];
+
+    const state = {
+      journals: [],
+      articles: [],
+      bookmarks: [],
+      tocCache: {}, // Map of DOI -> resolved TOI image URL or null
+      failedIssns: new Set(), // Tracks ISSNs that failed or were rate-limited on last fetch
+      showToc: true,
+      tabSearchQuery: '',
+      managerSearchQuery: '',
+      selectedPublisher: 'ALL',
+      selectedDiscipline: 'ALL',
+      selectedJournalIssn: 'ALL',
+      timeFilter: {
+        mode: 'latest', // 'latest' | '1w' | '1m' | '1y' | 'date'
+        specificDate: '' // YYYY-MM-DD when mode === 'date'
+      },
+      searchQuery: '',
+      viewMode: 'cards', // 'cards' | 'table'
+      isLoading: false,
+      usedFallback: false
+    };
+
+    const PUBLISHERS = ['ALL', 'ACS', 'Wiley', 'Nature', 'RSC'];
+    const DISCIPLINES = ['ALL', 'General Chemistry', 'Organic', 'Catalysis', 'Inorganic', 'Synthesis'];
+    const TIME_PRESETS = [
+      { id: 'latest', label: 'Latest ASAP' },
+      { id: '1w', label: '1 Week Ago' },
+      { id: '1m', label: '1 Month Ago' },
+      { id: '1y', label: '1 Year Ago' }
+    ];
+
+    /**
+     * ============================================================================
+     * 3. INITIALIZATION & PERSISTENCE
+     * ============================================================================
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPersistedState();
+      renderJournalTabs();
+      renderFilterPills();
+      renderTimeControls();
+      renderIssnDirectory();
+      updateTabContextBar();
+      updateJournalManagerList();
+      updateBookmarkCounters();
+      renderBookmarksDrawer();
+      applyViewModeUI();
+      lucide.createIcons();
+
+      // Debounced instant search listener
+      let searchTimeout = null;
+      const searchInput = document.getElementById('search-input');
+      const clearSearchBtn = document.getElementById('clear-search-btn');
+
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value.trim();
+        clearSearchBtn.classList.toggle('hidden', state.searchQuery.length === 0);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          renderArticles();
+        }, 120);
+      });
+
+      // Keyboard Escape key to close drawers
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeAllDrawers();
+        }
+      });
+
+      // Trigger live Crossref ASAP fetch
+      fetchAllActiveJournals(false);
+    });
+
+    function loadPersistedState() {
+      let baseList = [];
+      try {
+        const savedJournals = localStorage.getItem(STORAGE_KEYS.JOURNALS);
+        baseList = savedJournals ? JSON.parse(savedJournals) : structuredClone(DEFAULT_JOURNALS);
+      } catch (e) {
+        baseList = structuredClone(DEFAULT_JOURNALS);
+      }
+
+      // Always merge in permanently saved custom journals so they are never lost
+      try {
+        const savedCustom = localStorage.getItem(STORAGE_KEYS.CUSTOM_JOURNALS);
+        const customList = savedCustom ? JSON.parse(savedCustom) : [];
+        customList.forEach(cj => {
+          if (!baseList.some(j => j.issn === cj.issn)) {
+            baseList.push({ ...cj, custom: true });
+          }
+        });
+      } catch (e) {
+        console.warn('Could not load custom journals:', e);
+      }
+
+      state.journals = baseList;
+
+      try {
+        const savedBookmarks = localStorage.getItem(STORAGE_KEYS.BOOKMARKS);
+        state.bookmarks = savedBookmarks ? JSON.parse(savedBookmarks) : [];
+      } catch (e) {
+        state.bookmarks = [];
+      }
+
+      const savedView = localStorage.getItem(STORAGE_KEYS.VIEW_MODE);
+      if (savedView === 'cards' || savedView === 'table') {
+        state.viewMode = savedView;
+      }
+
+      const savedShowToc = localStorage.getItem(STORAGE_KEYS.SHOW_TOC);
+      if (savedShowToc !== null) {
+        state.showToc = savedShowToc === 'true';
+      }
+      updateTocToggleUI();
+    }
+
+    function toggleShowToc() {
+      state.showToc = !state.showToc;
+      localStorage.setItem(STORAGE_KEYS.SHOW_TOC, String(state.showToc));
+      updateTocToggleUI();
+      renderArticles();
+    }
+
+    function updateTocToggleUI() {
+      const btn = document.getElementById('toggle-toc-btn');
+      const label = document.getElementById('toc-toggle-label');
+      if (!btn || !label) return;
+      label.textContent = state.showToc ? 'On' : 'Off';
+      btn.className = state.showToc
+        ? 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition bg-teal-50 text-teal-800 border-teal-200'
+        : 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200/70';
+    }
+
+    function saveJournals() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.JOURNALS, JSON.stringify(state.journals));
+        const customOnly = state.journals.filter(j => j.custom);
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_JOURNALS, JSON.stringify(customOnly));
+      } catch (e) {
+        console.warn('Could not persist journals to localStorage:', e);
+      }
+      if (state.selectedJournalIssn !== 'ALL') {
+        const activeTabJournal = state.journals.find(j => j.issn === state.selectedJournalIssn && j.enabled);
+        if (!activeTabJournal) {
+          state.selectedJournalIssn = 'ALL';
+        }
+      }
+      renderJournalTabs();
+      updateTabContextBar();
+      updateJournalManagerList();
+      renderFilterPills();
+    }
+
+    function saveBookmarks() {
+      localStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(state.bookmarks));
+      updateBookmarkCounters();
+      renderBookmarksDrawer();
+    }
+
+    /**
+     * ============================================================================
+     * 4. LIVE CROSSREF API INTEGRATION (WITH TIME WINDOW QUERIES)
+     * ============================================================================
+     */
+    function getIsoDateOffset(daysOffset = 0, yearsOffset = 0) {
+      const d = new Date();
+      if (yearsOffset !== 0) d.setFullYear(d.getFullYear() + yearsOffset);
+      if (daysOffset !== 0) d.setDate(d.getDate() + daysOffset);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function computeTimeWindowBounds() {
+      const { mode, specificDate } = state.timeFilter;
+      if (mode === '1w') {
+        return {
+          from: getIsoDateOffset(-14),
+          until: getIsoDateOffset(-7),
+          label: `1 Week Ago (${getIsoDateOffset(-14)} to ${getIsoDateOffset(-7)})`
+        };
+      }
+      if (mode === '1m') {
+        return {
+          from: getIsoDateOffset(-37),
+          until: getIsoDateOffset(-30),
+          label: `1 Month Ago (${getIsoDateOffset(-37)} to ${getIsoDateOffset(-30)})`
+        };
+      }
+      if (mode === '1y') {
+        return {
+          from: getIsoDateOffset(-372),
+          until: getIsoDateOffset(-365),
+          label: `1 Year Ago (${getIsoDateOffset(-372)} to ${getIsoDateOffset(-365)})`
+        };
+      }
+      if (mode === 'date' && specificDate) {
+        return {
+          from: specificDate,
+          until: specificDate,
+          label: `Published on ${specificDate}`
+        };
+      }
+      return null;
+    }
+
+    function normalizeCrossrefWork(item, journal) {
+      const rawTitle = Array.isArray(item.title) ? item.title[0] : (item.title || 'Untitled Article');
+      const cleanTitle = sanitizeBasicHtml(rawTitle);
+
+      const authors = Array.isArray(item.author)
+        ? item.author
+            .map(a => [a.given, a.family].filter(Boolean).join(' '))
+            .filter(Boolean)
+        : ['Authors Listed on Publisher Page'];
+
+      const dateParts =
+        item['published-online']?.['date-parts']?.[0] ||
+        item['published']?.['date-parts']?.[0] ||
+        item['created']?.['date-parts']?.[0] ||
+        [];
+
+      let publishedDate = 'Recent ASAP';
+      let timestamp = Date.now();
+      if (dateParts.length >= 1) {
+        const y = dateParts[0];
+        const m = String(dateParts[1] || 1).padStart(2, '0');
+        const d = String(dateParts[2] || 1).padStart(2, '0');
+        publishedDate = dateParts.length >= 3 ? `${y}-${m}-${d}` : `${y}-${m}`;
+        timestamp = new Date(`${y}-${m}-${d}T12:00:00Z`).getTime() || Date.now();
+      }
+
+      const doi = item.DOI || '';
+      const url = item.URL || (doi ? `https://doi.org/${doi}` : journal.asapUrl);
+
+      let directImageUrl = null;
+      if (Array.isArray(item.link)) {
+        const imgLink = item.link.find(l =>
+          (l['content-type'] && l['content-type'].startsWith('image/')) ||
+          /\.(png|jpe?g|gif|webp)(\?|$)/i.test(l.URL || '')
+        );
+        if (imgLink && imgLink.URL) {
+          directImageUrl = imgLink.URL;
+        }
+      }
+
+      return {
+        doi,
+        title: cleanTitle,
+        plainTitle: stripHtml(cleanTitle),
+        authors: authors.length > 0 ? authors : ['Authors Listed on Publisher Page'],
+        issn: journal.issn,
+        publishedDate,
+        timestamp,
+        url,
+        directImageUrl,
+        type: item.type || 'journal-article',
+        isFallback: false
+      };
+    }
+
+    function probeImageCandidate(url) {
+      return new Promise((resolve) => {
+        if (!url) {
+          resolve(null);
+          return;
+        }
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        const timer = setTimeout(() => {
+          img.src = '';
+          resolve(null);
+        }, 4500);
+
+        img.onload = () => {
+          clearTimeout(timer);
+          if (img.naturalWidth >= 60 && img.naturalHeight >= 40) {
+            resolve(url);
+          } else {
+            resolve(null);
+          }
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          resolve(null);
+        };
+        img.src = url;
+      });
+    }
+
+    function buildPublisherTocCandidates(article) {
+      const doi = article.doi || '';
+      const candidates = [];
+
+      if (article.directImageUrl) {
+        candidates.push(article.directImageUrl);
+      }
+
+      if (doi.startsWith('10.1021/')) {
+        const suffix = doi.slice('10.1021/'.length);
+        candidates.push(`https://pubs.acs.org/cms/10.1021/${suffix}/asset/images/medium/${suffix}.gif`);
+        candidates.push(`https://pubs.acs.org/cms/10.1021/${suffix}/asset/images/medium/${suffix}.jpg`);
+        candidates.push(`https://pubs.acs.org/cms/10.1021/${suffix}/asset/images/large/${suffix}.jpeg`);
+      }
+
+      if (doi.startsWith('10.1039/')) {
+        const code = doi.slice('10.1039/'.length).toUpperCase();
+        candidates.push(`https://pubs.rsc.org/en/Content/Image/GA/${code}`);
+      }
+
+      if (doi.startsWith('10.1038/')) {
+        const slug = doi.slice('10.1038/'.length);
+        candidates.push(`https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2F${encodeURIComponent(slug)}/MediaObjects/41557_2026_Fig1_HTML.png`);
+      }
+
+      if (doi.startsWith('10.1002/')) {
+        const slug = doi.slice('10.1002/'.length);
+        candidates.push(`https://onlinelibrary.wiley.com/cms/asset/${slug}/graphic/toc.jpg`);
+      }
+
+      return candidates;
+    }
+
+    async function fetchEuropePmcFigureUrl(doi) {
+      if (!doi) return null;
+      try {
+        const res = await fetch(
+          `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%22${encodeURIComponent(doi)}%22&resultType=core&format=json`
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        const hit = data?.resultList?.result?.[0];
+        if (hit?.fullTextIdList?.fullTextId?.[0]) {
+          const pmcid = hit.fullTextIdList.fullTextId[0];
+          return `https://europepmc.org/articles/${encodeURIComponent(pmcid)}/bin/ga.jpg`;
+        }
+      } catch (e) {
+        // Ignore lookup failures
+      }
+      return null;
+    }
+
+    async function resolveTocImageForArticle(article) {
+      const doi = article.doi;
+      if (!doi) return null;
+      if (Object.prototype.hasOwnProperty.call(state.tocCache, doi)) {
+        return state.tocCache[doi];
+      }
+
+      const candidates = buildPublisherTocCandidates(article);
+      for (const candidateUrl of candidates) {
+        const valid = await probeImageCandidate(candidateUrl);
+        if (valid) {
+          state.tocCache[doi] = valid;
+          return valid;
+        }
+      }
+
+      const epmcUrl = await fetchEuropePmcFigureUrl(doi);
+      if (epmcUrl) {
+        const validEpmc = await probeImageCandidate(epmcUrl);
+        if (validEpmc) {
+          state.tocCache[doi] = validEpmc;
+          return validEpmc;
+        }
+      }
+
+      state.tocCache[doi] = null;
+      return null;
+    }
+
+    async function fetchJournalWorks(journal) {
+      const bounds = computeTimeWindowBounds();
+      let filterParam = '';
+      if (bounds) {
+        filterParam = `&filter=from-pub-date:${bounds.from},until-pub-date:${bounds.until}`;
+      }
+
+      const rows = state.selectedJournalIssn === journal.issn ? 20 : 8;
+      const endpoint = `https://api.crossref.org/journals/${encodeURIComponent(journal.issn)}/works?sort=published&order=desc&rows=${rows}${filterParam}&mailto=chemasap-dashboard@example.org`;
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        try {
+          const response = await fetch(endpoint, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json' }
+          });
+          clearTimeout(timeoutId);
+
+          if (response.status === 429 && attempt === 0) {
+            await new Promise(r => setTimeout(r, 900));
+            continue;
+          }
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          const items = data?.message?.items || [];
+
+          return items
+            .filter(item => item.title && item.title.length > 0)
+            .map(item => normalizeCrossrefWork(item, journal));
+        } catch (err) {
+          clearTimeout(timeoutId);
+          if (attempt === 1) {
+            console.warn(`Crossref fetch failed for ${journal.abbrev} (${journal.issn}):`, err.message);
+            return null;
+          }
+          await new Promise(r => setTimeout(r, 600));
+        }
+      }
+      return null;
+    }
+
+    function hydrateVisibleTocImages(articles) {
+      if (!state.showToc) return;
+      articles.forEach(async (article) => {
+        if (!article.doi) return;
+        const resolvedUrl = await resolveTocImageForArticle(article);
+        if (!resolvedUrl || !state.showToc) return;
+
+        const slots = document.querySelectorAll(`[data-toc-doi="${CSS.escape(article.doi)}"]`);
+        slots.forEach(slot => {
+          slot.classList.remove('hidden');
+          const img = slot.querySelector('img');
+          if (img && img.src !== resolvedUrl) {
+            img.src = resolvedUrl;
+          }
+          slot.dataset.hydrated = 'true';
+        });
+      });
+    }
+
+    function isBookmarked(doi) {
+      return state.bookmarks.some(b => b.doi === doi);
+    }
+
+    function renderLoadingSkeletons() {
+      const skeleton = document.getElementById('loading-skeleton');
+      const grid = document.getElementById('articles-grid');
+      const tableWrapper = document.getElementById('articles-table-wrapper');
+      const emptyState = document.getElementById('empty-state');
+
+      grid.classList.add('hidden');
+      tableWrapper.classList.add('hidden');
+      emptyState.classList.add('hidden');
+      skeleton.classList.remove('hidden');
+
+      skeleton.innerHTML = Array.from({ length: 6 }).map(() => `
+        <div class="bg-white rounded-xl border border-slate-200 p-5 animate-pulse">
+          <div class="flex items-center justify-between mb-3">
+            <div class="h-5 w-24 bg-slate-200 rounded"></div>
+            <div class="h-4 w-20 bg-slate-100 rounded"></div>
+          </div>
+          <div class="space-y-2 mb-4">
+            <div class="h-4 bg-slate-200 rounded w-full"></div>
+            <div class="h-4 bg-slate-200 rounded w-5/6"></div>
+            <div class="h-4 bg-slate-200 rounded w-2/3"></div>
+          </div>
+          <div class="h-3 bg-slate-100 rounded w-3/4 mb-5"></div>
+          <div class="flex justify-between pt-3 border-t border-slate-100">
+            <div class="h-4 w-28 bg-slate-100 rounded"></div>
+            <div class="h-6 w-16 bg-slate-200 rounded"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderArticles() {
+      const skeleton = document.getElementById('loading-skeleton');
+      const grid = document.getElementById('articles-grid');
+      const tableWrapper = document.getElementById('articles-table-wrapper');
+      const emptyState = document.getElementById('empty-state');
+      const summary = document.getElementById('results-summary');
+
+      skeleton.classList.add('hidden');
+      updateFeedStatusNotices();
+
+      const filtered = getFilteredArticles();
+      const activeCount = state.journals.filter(j => j.enabled).length;
+      const bounds = computeTimeWindowBounds();
+      const scopeLabel = state.selectedJournalIssn === 'ALL'
+        ? `across ${activeCount} subscribed chemistry journal${activeCount === 1 ? '' : 's'}`
+        : `in ${getJournalByIssn(state.selectedJournalIssn).abbrev}`;
+      const timeLabel = bounds ? ` • ${bounds.label}` : '';
+
+      summary.textContent = `Showing ${filtered.length} ASAP paper${filtered.length === 1 ? '' : 's'} ${scopeLabel}${timeLabel}`;
+
+      if (filtered.length === 0) {
+        grid.classList.add('hidden');
+        tableWrapper.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        lucide.createIcons();
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      if (state.viewMode === 'cards') {
+        tableWrapper.classList.add('hidden');
+        grid.classList.remove('hidden');
+        renderCardsView(filtered, grid);
+      } else {
+        grid.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
+        renderTableView(filtered);
+      }
+
+      lucide.createIcons();
+      hydrateVisibleTocImages(filtered);
+    }
+
+    function updateFeedStatusNotices() {
+      const fallbackNotice = document.getElementById('fallback-notice');
+      const fallbackNoticeText = document.getElementById('fallback-notice-text');
+      const liveBadge = document.getElementById('live-status-badge');
+      if (!fallbackNotice || !fallbackNoticeText || !liveBadge) return;
+
+      const isAllTab = state.selectedJournalIssn === 'ALL';
+      const activeTabFailed = isAllTab
+        ? state.failedIssns.size > 0
+        : state.failedIssns.has(state.selectedJournalIssn);
+
+      if (activeTabFailed) {
+        if (isAllTab) {
+          const failedNames = Array.from(state.failedIssns)
+            .map(issn => getJournalByIssn(issn).abbrev)
+            .join(', ');
+          fallbackNoticeText.textContent = `Crossref rate-limited ${failedNames}. Switch to that tab and click Refresh if needed.`;
+        } else {
+          const jName = getJournalByIssn(state.selectedJournalIssn).abbrev;
+          fallbackNoticeText.textContent = `${jName} was temporarily rate-limited by Crossref (showing cached items if available). Click Refresh to reload this journal.`;
+        }
+        fallbackNotice.classList.remove('hidden');
+      } else {
+        fallbackNotice.classList.add('hidden');
+      }
+
+      const showPartialBadge = state.failedIssns.size > 0;
+      liveBadge.className = showPartialBadge
+        ? 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200'
+        : 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200';
+      liveBadge.innerHTML = `
+        <span class="w-1.5 h-1.5 rounded-full ${showPartialBadge ? 'bg-amber-500' : 'bg-emerald-500 animate-pulse'}"></span>
+        ${showPartialBadge ? `Crossref Live (${state.failedIssns.size} delayed)` : 'Crossref Live'}
+      `;
+    }
+
+    async function fetchAllActiveJournals(isManualRefresh = false) {
+      if (state.isLoading) return;
+      state.isLoading = true;
+      state.usedFallback = false;
+      state.failedIssns.clear();
+
+      const refreshIcon = document.getElementById('refresh-icon');
+      const fallbackNotice = document.getElementById('fallback-notice');
+      const lastUpdatedEl = document.getElementById('last-updated-label');
+
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+      if (fallbackNotice) fallbackNotice.classList.add('hidden');
+      renderLoadingSkeletons();
+
+      const activeJournals = state.journals.filter(j => j.enabled);
+      if (activeJournals.length === 0) {
+        state.articles = [];
+        state.isLoading = false;
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+        renderJournalTabs();
+        renderArticles();
+        return;
+      }
+
+      try {
+        // Prioritize the currently selected journal tab first, then fetch others in small batches to avoid Crossref rate limits
+        const prioritized = [...activeJournals].sort((a, b) =>
+          a.issn === state.selectedJournalIssn ? -1 : b.issn === state.selectedJournalIssn ? 1 : 0
+        );
+
+        const combined = [];
+        const batchSize = 3;
+        for (let i = 0; i < prioritized.length; i += batchSize) {
+          const batch = prioritized.slice(i, i + batchSize);
+          const batchResults = await Promise.all(batch.map(j => fetchJournalWorks(j)));
+
+          batchResults.forEach((items, idx) => {
+            const journal = batch[idx];
+            if (Array.isArray(items)) {
+              combined.push(...items);
+            } else {
+              state.failedIssns.add(journal.issn);
+            }
+          });
+
+          if (i + batchSize < prioritized.length) {
+            await new Promise(r => setTimeout(r, 250));
+          }
+        }
+
+        const bounds = computeTimeWindowBounds();
+        if (combined.length > 0) {
+          if (!bounds && state.failedIssns.size > 0) {
+            // Fill in cached fallback items only for journals that were rate-limited
+            const fallbackForFailed = FALLBACK_ARTICLES.filter(a => state.failedIssns.has(a.issn));
+            combined.push(...fallbackForFailed);
+          }
+          combined.sort((a, b) => b.timestamp - a.timestamp);
+          state.articles = combined;
+          state.usedFallback = state.failedIssns.size > 0;
+        } else if (!bounds) {
+          const enabledIssns = new Set(activeJournals.map(j => j.issn));
+          state.articles = FALLBACK_ARTICLES.filter(a => enabledIssns.has(a.issn));
+          state.usedFallback = true;
+        } else {
+          state.articles = [];
+        }
+
+        const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (lastUpdatedEl) {
+          lastUpdatedEl.textContent = `Synced ${nowTime}`;
+        }
+
+        if (isManualRefresh) {
+          showToast('ASAP feeds refreshed from Crossref.');
+        }
+      } catch (err) {
+        console.error('Unexpected error during ASAP sync:', err);
+        state.articles = FALLBACK_ARTICLES;
+        state.usedFallback = true;
+      } finally {
+        state.isLoading = false;
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+        renderJournalTabs();
+        renderArticles();
+      }
+    }
+
+    function getFilteredArticles() {
+      const enabledIssnSet = new Set(state.journals.filter(j => j.enabled).map(j => j.issn));
+      const q = state.searchQuery.toLowerCase();
+
+      return state.articles.filter(article => {
+        if (!enabledIssnSet.has(article.issn)) return false;
+
+        if (state.selectedJournalIssn !== 'ALL' && article.issn !== state.selectedJournalIssn) {
+          return false;
+        }
+
+        const journal = getJournalByIssn(article.issn);
+
+        if (state.selectedJournalIssn === 'ALL') {
+          if (state.selectedPublisher !== 'ALL' && journal.publisher !== state.selectedPublisher) {
+            return false;
+          }
+          if (state.selectedDiscipline !== 'ALL' && journal.discipline !== state.selectedDiscipline) {
+            return false;
+          }
+        }
+
+        if (q) {
+          const titleMatch = (article.plainTitle || stripHtml(article.title)).toLowerCase().includes(q);
+          const authorMatch = (article.authors || []).some(a => a.toLowerCase().includes(q));
+          const doiMatch = (article.doi || '').toLowerCase().includes(q);
+          const journalMatch = (journal.name || '').toLowerCase().includes(q) || (journal.abbrev || '').toLowerCase().includes(q);
+          if (!titleMatch && !authorMatch && !doiMatch && !journalMatch) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    }
+
+    function getJournalByIssn(issn) {
+      return (
+        state.journals.find(j => j.issn === issn) ||
+        DEFAULT_JOURNALS.find(j => j.issn === issn) || {
+          issn,
+          name: `Journal (${issn})`,
+          shortName: issn,
+          abbrev: issn,
+          publisher: 'Other',
+          discipline: 'General Chemistry',
+          asapUrl: 'https://www.crossref.org/'
+        }
+      );
+    }
+
+    function getPublisherBadgeStyle(publisher) {
+      switch (publisher) {
+        case 'ACS':
+          return 'bg-amber-50 text-amber-800 border-amber-200';
+        case 'Wiley':
+          return 'bg-sky-50 text-sky-800 border-sky-200';
+        case 'Nature':
+          return 'bg-rose-50 text-rose-800 border-rose-200';
+        case 'RSC':
+          return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+        default:
+          return 'bg-slate-100 text-slate-700 border-slate-200';
+      }
+    }
+
+    function getPublisherDotColor(publisher) {
+      switch (publisher) {
+        case 'ACS':
+          return 'bg-amber-500';
+        case 'Wiley':
+          return 'bg-sky-500';
+        case 'Nature':
+          return 'bg-rose-500';
+        case 'RSC':
+          return 'bg-emerald-500';
+        default:
+          return 'bg-slate-400';
+      }
+    }
+
+    function renderCardsView(articles, container) {
+      container.innerHTML = articles.map(article => {
+        const journal = getJournalByIssn(article.issn);
+        const pubBadge = getPublisherBadgeStyle(journal.publisher);
+        const saved = isBookmarked(article.doi);
+        const authorsDisplay = formatAuthorsList(article.authors, 4);
+        const safeDoi = escapeAttr(article.doi);
+        const cachedTocUrl = state.showToc && article.doi ? state.tocCache[article.doi] : null;
+        const showSlotNow = Boolean(cachedTocUrl);
+
+        return `
+          <article class="group bg-white rounded-xl border border-slate-200 hover:border-teal-500/60 hover:shadow-md transition-all duration-200 flex flex-col justify-between p-5">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${pubBadge} shrink-0">
+                    ${escapeHtml(journal.publisher)}
+                  </span>
+                  <button
+                    type="button"
+                    onclick="selectJournalTab('${escapeAttr(journal.issn)}')"
+                    class="text-xs font-semibold text-navy-800 hover:text-teal-700 truncate transition text-left"
+                    title="Switch to ${escapeAttr(journal.name)} tab"
+                  >
+                    ${escapeHtml(journal.abbrev)}
+                  </button>
+                </div>
+                <span class="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
+                  <i data-lucide="calendar" class="w-3 h-3"></i>
+                  ${escapeHtml(article.publishedDate)}
+                </span>
+              </div>
+
+              <!-- Title + Optional Table of Contents (TOI) Graphic -->
+              <div class="flex items-start gap-3 mb-2.5">
+                <div class="flex-1 min-w-0">
+                  <h2 class="article-title text-[15px] font-semibold text-slate-900 leading-snug group-hover:text-teal-800 transition">
+                    <a href="${escapeAttr(article.url)}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+                      ${article.title}
+                    </a>
+                  </h2>
+                </div>
+
+                ${state.showToc && article.doi ? `
+                  <a
+                    href="${escapeAttr(article.url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-toc-doi="${safeDoi}"
+                    data-hydrated="${showSlotNow ? 'true' : 'false'}"
+                    class="${showSlotNow ? '' : 'hidden'} shrink-0 w-24 sm:w-28 rounded-lg border border-slate-200 bg-white p-1 shadow-2xs hover:border-teal-500 transition overflow-hidden"
+                    title="Table of Contents Graphic (TOI) — Click to open article"
+                  >
+                    <img
+                      src="${showSlotNow ? escapeAttr(cachedTocUrl) : ''}"
+                      alt="TOI graphic for ${escapeAttr(article.plainTitle)}"
+                      loading="lazy"
+                      referrerpolicy="no-referrer"
+                      onerror="this.parentElement.classList.add('hidden')"
+                      class="w-full h-16 sm:h-20 object-contain rounded toc-img-fade bg-white"
+                    />
+                  </a>
+                ` : ''}
+              </div>
+
+              <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                ${escapeHtml(authorsDisplay)}
+              </p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="font-mono text-[11px] text-slate-500 truncate" title="${safeDoi}">
+                  ${escapeHtml(article.doi || 'ASAP Pre-Issue')}
+                </span>
+                ${article.doi ? `
+                  <button
+                    onclick="copyText('${safeDoi}', 'DOI copied to clipboard')"
+                    class="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0"
+                    title="Copy DOI"
+                  >
+                    <i data-lucide="copy" class="w-3 h-3"></i>
+                  </button>
+                ` : ''}
+              </div>
+
+              <div class="flex items-center gap-1 shrink-0">
+                <button
+                  onclick="copySingleBibtex('${safeDoi}')"
+                  class="px-2 py-1 rounded-md text-[11px] font-mono font-medium text-slate-600 hover:text-navy-900 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition"
+                  title="Copy BibTeX Citation"
+                >
+                  BibTeX
+                </button>
+                <button
+                  onclick="toggleBookmark('${safeDoi}')"
+                  class="p-1.5 rounded-md transition ${
+                    saved
+                      ? 'bg-teal-50 text-teal-700 border border-teal-200'
+                      : 'text-slate-400 hover:text-teal-600 hover:bg-slate-100'
+                  }"
+                  title="${saved ? 'Remove from Reading List' : 'Save to Reading List'}"
+                >
+                  <i data-lucide="bookmark" class="w-3.5 h-3.5 ${saved ? 'fill-teal-600' : ''}"></i>
+                </button>
+                <a
+                  href="${escapeAttr(article.url)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-navy-800 text-white text-[11px] font-medium hover:bg-teal-700 transition"
+                  title="Open Article on Publisher Site"
+                >
+                  <span>Read</span>
+                  <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderTableView(articles) {
+      const tbody = document.getElementById('articles-table-body');
+      tbody.innerHTML = articles.map(article => {
+        const journal = getJournalByIssn(article.issn);
+        const pubBadge = getPublisherBadgeStyle(journal.publisher);
+        const saved = isBookmarked(article.doi);
+        const authorsDisplay = formatAuthorsList(article.authors, 3);
+        const safeDoi = escapeAttr(article.doi);
+        const cachedTocUrl = state.showToc && article.doi ? state.tocCache[article.doi] : null;
+        const showSlotNow = Boolean(cachedTocUrl);
+
+        return `
+          <tr class="hover:bg-slate-50/90 transition">
+            <td class="py-3 px-4 align-top">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border ${pubBadge} mb-1">
+                ${escapeHtml(journal.publisher)}
+              </span>
+              <button
+                type="button"
+                onclick="selectJournalTab('${escapeAttr(journal.issn)}')"
+                class="block text-xs font-semibold text-navy-900 hover:text-teal-700 text-left transition"
+              >
+                ${escapeHtml(journal.abbrev)}
+              </button>
+            </td>
+            <td class="py-3 px-4 align-top">
+              <div class="flex items-start gap-3">
+                ${state.showToc && article.doi ? `
+                  <a
+                    href="${escapeAttr(article.url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-toc-doi="${safeDoi}"
+                    data-hydrated="${showSlotNow ? 'true' : 'false'}"
+                    class="${showSlotNow ? '' : 'hidden'} shrink-0 w-20 rounded border border-slate-200 bg-white p-0.5 hover:border-teal-500 transition overflow-hidden"
+                    title="Table of Contents Graphic (TOI)"
+                  >
+                    <img
+                      src="${showSlotNow ? escapeAttr(cachedTocUrl) : ''}"
+                      alt="TOI"
+                      loading="lazy"
+                      referrerpolicy="no-referrer"
+                      onerror="this.parentElement.classList.add('hidden')"
+                      class="w-full h-12 object-contain toc-img-fade bg-white"
+                    />
+                  </a>
+                ` : ''}
+                <div class="min-w-0 flex-1">
+                  <a href="${escapeAttr(article.url)}" target="_blank" rel="noopener noreferrer"
+                     class="article-title font-medium text-slate-900 hover:text-teal-700 hover:underline leading-snug block mb-1">
+                    ${article.title}
+                  </a>
+                  <p class="text-xs text-slate-500">${escapeHtml(authorsDisplay)}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4 align-top hidden md:table-cell">
+              <div class="flex items-center gap-1 font-mono text-xs text-slate-500">
+                <span class="truncate max-w-[125px]" title="${safeDoi}">${escapeHtml(article.doi)}</span>
+                ${article.doi ? `
+                  <button onclick="copyText('${safeDoi}', 'DOI copied')" class="text-slate-400 hover:text-slate-700 p-0.5" title="Copy DOI">
+                    <i data-lucide="copy" class="w-3 h-3"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+            <td class="py-3 px-4 align-top hidden sm:table-cell font-mono text-xs text-slate-500 whitespace-nowrap">
+              ${escapeHtml(article.publishedDate)}
+            </td>
+            <td class="py-3 px-4 align-top text-right whitespace-nowrap">
+              <div class="inline-flex items-center gap-1">
+                <button
+                  onclick="copySingleBibtex('${safeDoi}')"
+                  class="px-2 py-1 rounded text-[11px] font-mono text-slate-600 hover:bg-slate-200/70 transition"
+                  title="Copy BibTeX"
+                >
+                  Bib
+                </button>
+                <button
+                  onclick="toggleBookmark('${safeDoi}')"
+                  class="p-1.5 rounded transition ${saved ? 'text-teal-600 bg-teal-50' : 'text-slate-400 hover:text-teal-600 hover:bg-slate-100'}"
+                  title="Bookmark"
+                >
+                  <i data-lucide="bookmark" class="w-3.5 h-3.5 ${saved ? 'fill-teal-600' : ''}"></i>
+                </button>
+                <a
+                  href="${escapeAttr(article.url)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="p-1.5 rounded text-navy-700 hover:bg-navy-800 hover:text-white transition"
+                  title="Open Article"
+                >
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * ============================================================================
+     * 6. TOP JOURNAL TABS, FILTER PILLS & VIEW SWITCHER
+     * ============================================================================
+     */
+    function renderJournalTabs() {
+      const container = document.getElementById('journal-tabs-bar');
+      if (!container) return;
+
+      const enabledJournals = state.journals.filter(j => j.enabled);
+      const tq = (state.tabSearchQuery || '').toLowerCase();
+      const visibleJournals = tq
+        ? enabledJournals.filter(j =>
+            j.abbrev.toLowerCase().includes(tq) ||
+            j.name.toLowerCase().includes(tq) ||
+            j.shortName.toLowerCase().includes(tq) ||
+            j.publisher.toLowerCase().includes(tq) ||
+            j.issn.toLowerCase().includes(tq)
+          )
+        : enabledJournals;
+      const isAllActive = state.selectedJournalIssn === 'ALL';
+
+      const allTabHtml = `
+        <button
+          type="button"
+          role="tab"
+          aria-selected="${isAllActive}"
+          onclick="selectJournalTab('ALL')"
+          class="group relative inline-flex items-center gap-2 px-3.5 py-2 rounded-t-lg text-xs font-semibold transition whitespace-nowrap border-t border-x shrink-0 ${
+            isAllActive
+              ? 'bg-white text-navy-900 border-slate-200 shadow-2xs -mb-px z-10'
+              : 'bg-slate-200/60 text-slate-600 border-transparent hover:bg-white/70 hover:text-navy-900'
+          }"
+        >
+          <i data-lucide="layers" class="w-3.5 h-3.5 ${isAllActive ? 'text-teal-600' : 'text-slate-400 group-hover:text-teal-600'}"></i>
+          <span>All Journals</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            isAllActive ? 'bg-teal-50 text-teal-700 border border-teal-200' : 'bg-slate-200 text-slate-600'
+          }">${state.articles.length}</span>
+        </button>
+      `;
+
+      const journalTabsHtml = visibleJournals.map(journal => {
+        const isActive = state.selectedJournalIssn === journal.issn;
+        const dotColor = getPublisherDotColor(journal.publisher);
+        const count = state.articles.filter(a => a.issn === journal.issn).length;
+        const safeIssn = escapeAttr(journal.issn);
+
+        return `
+          <div
+            role="tab"
+            data-tab-issn="${safeIssn}"
+            aria-selected="${isActive}"
+            onclick="selectJournalTab('${safeIssn}')"
+            class="group relative inline-flex items-center gap-1.5 pl-3 pr-2 py-2 rounded-t-lg text-xs font-medium transition whitespace-nowrap border-t border-x shrink-0 cursor-pointer select-none ${
+              isActive
+                ? 'bg-white text-navy-900 font-semibold border-slate-200 shadow-2xs -mb-px z-10'
+                : 'bg-slate-200/60 text-slate-600 border-transparent hover:bg-white/80 hover:text-navy-900'
+            }"
+            title="${escapeAttr(journal.name)} (${escapeAttr(journal.publisher)} • ISSN ${escapeAttr(journal.issn)})"
+          >
+            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+            <span>${escapeHtml(journal.abbrev)}</span>
+            ${journal.custom ? `<span class="text-[9px] font-mono uppercase px-1 rounded bg-teal-50 text-teal-700 border border-teal-200">Custom</span>` : ''}
+            ${count > 0 ? `
+              <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                isActive ? 'bg-slate-100 text-navy-800' : 'bg-slate-200/80 text-slate-500'
+              }">${count}</span>
+            ` : ''}
+            <button
+              type="button"
+              onclick="event.stopPropagation(); toggleSingleJournal('${safeIssn}', false)"
+              class="ml-0.5 p-0.5 rounded opacity-60 sm:opacity-0 group-hover:opacity-100 hover:bg-rose-100 hover:text-rose-700 transition"
+              title="Uncheck / hide ${escapeAttr(journal.abbrev)} from top tabs"
+            >
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      const emptyFilterHint = visibleJournals.length === 0 && tq
+        ? `<span class="px-3 py-2 text-xs text-slate-500 italic whitespace-nowrap">No matching tab for "${escapeHtml(state.tabSearchQuery)}" — click Custom ISSN to add by ISSN</span>`
+        : '';
+
+      container.innerHTML = allTabHtml + journalTabsHtml + emptyFilterHint;
+      lucide.createIcons();
+    }
+
+    function scrollJournalTabs(deltaPx) {
+      const container = document.getElementById('journal-tabs-bar');
+      if (container) {
+        container.scrollBy({ left: deltaPx, behavior: 'smooth' });
+      }
+    }
+
+    function handleTabQuickSearch(val) {
+      state.tabSearchQuery = val.trim();
+      const clearBtn = document.getElementById('clear-tab-search-btn');
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', state.tabSearchQuery.length === 0);
+      }
+      renderJournalTabs();
+    }
+
+    function handleTabQuickSearchKeydown(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const tq = state.tabSearchQuery.toLowerCase();
+        if (!tq) return;
+        const firstMatch = state.journals.find(j =>
+          j.enabled && (
+            j.abbrev.toLowerCase().includes(tq) ||
+            j.name.toLowerCase().includes(tq) ||
+            j.shortName.toLowerCase().includes(tq) ||
+            j.issn.toLowerCase().includes(tq)
+          )
+        );
+        if (firstMatch) {
+          selectJournalTab(firstMatch.issn);
+          showToast(`Jumped to ${firstMatch.abbrev}`);
+        }
+      } else if (event.key === 'Escape') {
+        clearTabQuickSearch();
+      }
+    }
+
+    function clearTabQuickSearch() {
+      const input = document.getElementById('tab-quick-search');
+      if (input) input.value = '';
+      state.tabSearchQuery = '';
+      const clearBtn = document.getElementById('clear-tab-search-btn');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      renderJournalTabs();
+    }
+
+    function selectJournalTab(issn) {
+      const previousIssn = state.selectedJournalIssn;
+      state.selectedJournalIssn = issn;
+      renderJournalTabs();
+      updateTabContextBar();
+      renderFilterPills();
+
+      // Smoothly scroll the selected tab into center view
+      const activeBtn = document.querySelector(`[data-tab-issn="${CSS.escape(issn)}"]`);
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      // Fetch deeper 20-article list when switching into a specific journal tab
+      if (issn !== 'ALL' && previousIssn !== issn) {
+        fetchAllActiveJournals(false);
+      } else {
+        renderArticles();
+      }
+    }
+
+    function uncheckActiveJournalTab() {
+      if (state.selectedJournalIssn === 'ALL') return;
+      const journal = getJournalByIssn(state.selectedJournalIssn);
+      toggleSingleJournal(state.selectedJournalIssn, false);
+      showToast(`Unchecked "${journal.abbrev}" from top tabs. Re-enable anytime in Add / Edit Tabs.`);
+    }
+
+    function updateTabContextBar() {
+      const banner = document.getElementById('active-tab-banner');
+      const allFilters = document.getElementById('all-tab-filters');
+
+      if (state.selectedJournalIssn === 'ALL') {
+        banner.classList.add('hidden');
+        allFilters.classList.remove('hidden');
+        return;
+      }
+
+      const journal = getJournalByIssn(state.selectedJournalIssn);
+      allFilters.classList.add('hidden');
+      banner.classList.remove('hidden');
+
+      const pubBadge = document.getElementById('active-tab-publisher-badge');
+      pubBadge.className = `inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${getPublisherBadgeStyle(journal.publisher)}`;
+      pubBadge.textContent = journal.publisher;
+
+      document.getElementById('active-tab-title').textContent = journal.name;
+      document.getElementById('active-tab-issn').textContent = `ISSN ${journal.issn}`;
+      document.getElementById('active-tab-asap-link').href = journal.asapUrl;
+    }
+
+    function renderFilterPills() {
+      const pubContainer = document.getElementById('publisher-filters');
+      pubContainer.innerHTML = PUBLISHERS.map(pub => {
+        const active = state.selectedPublisher === pub;
+        return `
+          <button
+            onclick="selectPublisher('${pub}')"
+            class="px-2.5 py-1 rounded-md text-xs font-medium transition ${
+              active
+                ? 'bg-navy-800 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200/70'
+            }"
+          >
+            ${pub === 'ALL' ? 'All' : pub}
+          </button>
+        `;
+      }).join('');
+
+      const discContainer = document.getElementById('discipline-filters');
+      discContainer.innerHTML = DISCIPLINES.map(disc => {
+        const active = state.selectedDiscipline === disc;
+        return `
+          <button
+            onclick="selectDiscipline('${disc}')"
+            class="px-2.5 py-1 rounded-md text-xs font-medium transition ${
+              active
+                ? 'bg-teal-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200/70'
+            }"
+          >
+            ${disc === 'ALL' ? 'All Fields' : disc}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectPublisher(pub) {
+      state.selectedPublisher = pub;
+      renderFilterPills();
+      renderArticles();
+    }
+
+    function selectDiscipline(disc) {
+      state.selectedDiscipline = disc;
+      renderFilterPills();
+      renderArticles();
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      localStorage.setItem(STORAGE_KEYS.VIEW_MODE, mode);
+      applyViewModeUI();
+      renderArticles();
+    }
+
+    function applyViewModeUI() {
+      const cardsBtn = document.getElementById('view-cards-btn');
+      const tableBtn = document.getElementById('view-table-btn');
+
+      if (state.viewMode === 'cards') {
+        cardsBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition bg-white text-navy-900 shadow-2xs';
+        tableBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition text-slate-600 hover:text-slate-900';
+      } else {
+        tableBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition bg-white text-navy-900 shadow-2xs';
+        cardsBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition text-slate-600 hover:text-slate-900';
+      }
+    }
+
+    function renderTimeControls() {
+      const container = document.getElementById('time-preset-pills');
+      const dateInput = document.getElementById('specific-date-input');
+      const rangeBadge = document.getElementById('active-date-range-badge');
+      if (!container) return;
+
+      container.innerHTML = TIME_PRESETS.map(preset => {
+        const active = state.timeFilter.mode === preset.id;
+        return `
+          <button
+            type="button"
+            onclick="selectTimePreset('${preset.id}')"
+            class="px-2.5 py-1 rounded-md text-xs font-medium transition ${
+              active
+                ? 'bg-navy-800 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200/70'
+            }"
+          >
+            ${escapeHtml(preset.label)}
+          </button>
+        `;
+      }).join('');
+
+      const todayIso = getIsoDateOffset(0);
+      dateInput.max = todayIso;
+      if (state.timeFilter.mode === 'date' && state.timeFilter.specificDate) {
+        dateInput.value = state.timeFilter.specificDate;
+      } else {
+        dateInput.value = '';
+      }
+
+      const bounds = computeTimeWindowBounds();
+      if (bounds) {
+        rangeBadge.textContent = bounds.label;
+        rangeBadge.classList.remove('hidden');
+      } else {
+        rangeBadge.classList.add('hidden');
+      }
+    }
+
+    function selectTimePreset(mode) {
+      state.timeFilter.mode = mode;
+      if (mode !== 'date') {
+        state.timeFilter.specificDate = '';
+      }
+      renderTimeControls();
+      fetchAllActiveJournals(false);
+    }
+
+    function selectSpecificDate(dateStr) {
+      if (!dateStr) {
+        selectTimePreset('latest');
+        return;
+      }
+      state.timeFilter.mode = 'date';
+      state.timeFilter.specificDate = dateStr;
+      renderTimeControls();
+      fetchAllActiveJournals(false);
+    }
+
+    function stepDate(deltaDays) {
+      const baseStr = (state.timeFilter.mode === 'date' && state.timeFilter.specificDate)
+        ? state.timeFilter.specificDate
+        : getIsoDateOffset(0);
+
+      const d = new Date(baseStr + 'T12:00:00Z');
+      d.setUTCDate(d.getUTCDate() + deltaDays);
+
+      const today = new Date(getIsoDateOffset(0) + 'T12:00:00Z');
+      if (d > today) {
+        showToast('Already at the latest date.', 'error');
+        return;
+      }
+
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      selectSpecificDate(`${y}-${m}-${day}`);
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      state.searchQuery = '';
+      document.getElementById('clear-search-btn').classList.add('hidden');
+      renderArticles();
+    }
+
+    function resetAllFilters() {
+      state.selectedPublisher = 'ALL';
+      state.selectedDiscipline = 'ALL';
+      state.selectedJournalIssn = 'ALL';
+      const hadTimeFilter = state.timeFilter.mode !== 'latest';
+      state.timeFilter = { mode: 'latest', specificDate: '' };
+      clearSearch();
+      renderJournalTabs();
+      updateTabContextBar();
+      renderFilterPills();
+      renderTimeControls();
+      if (hadTimeFilter) {
+        fetchAllActiveJournals(false);
+      } else {
+        renderArticles();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 7. JOURNAL FEED MANAGER (TOGGLE, REORDER & ADD PERMANENT CUSTOM ISSN)
+     * ============================================================================
+     */
+    function updateJournalManagerList(filterQuery) {
+      if (typeof filterQuery === 'string') {
+        state.managerSearchQuery = filterQuery.trim();
+      }
+      const container = document.getElementById('journal-manager-list');
+      const activeCountEl = document.getElementById('active-journal-count');
+      const enabledCount = state.journals.filter(j => j.enabled).length;
+      if (activeCountEl) activeCountEl.textContent = enabledCount;
+
+      const mq = (state.managerSearchQuery || '').toLowerCase();
+      const filteredJournals = mq
+        ? state.journals.filter(j =>
+            j.name.toLowerCase().includes(mq) ||
+            j.abbrev.toLowerCase().includes(mq) ||
+            j.publisher.toLowerCase().includes(mq) ||
+            j.issn.toLowerCase().includes(mq)
+          )
+        : state.journals;
+
+      if (filteredJournals.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-xs text-slate-500">
+            No journals match "${escapeHtml(state.managerSearchQuery)}". Enter its 8-digit ISSN above to add it permanently!
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredJournals.map((journal) => {
+        const pubBadge = getPublisherBadgeStyle(journal.publisher);
+        const safeIssn = escapeAttr(journal.issn);
+
+        return `
+          <div class="py-3 flex items-center justify-between gap-2">
+            <label class="flex items-start gap-3 cursor-pointer flex-1 min-w-0">
+              <input
+                type="checkbox"
+                ${journal.enabled ? 'checked' : ''}
+                onchange="toggleSingleJournal('${safeIssn}', this.checked)"
+                class="mt-1 w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+              />
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs font-semibold ${journal.enabled ? 'text-slate-900' : 'text-slate-400'} truncate">${escapeHtml(journal.name)}</span>
+                  ${journal.custom ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-teal-50 text-teal-700 border border-teal-200">Custom</span>` : ''}
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold border ${pubBadge}">
+                    ${escapeHtml(journal.publisher)}
+                  </span>
+                  <span class="text-[11px] font-mono text-slate-400">ISSN ${escapeHtml(journal.issn)}</span>
+                  <span class="text-[11px] text-slate-400">• ${escapeHtml(journal.abbrev)}</span>
+                </div>
+              </div>
+            </label>
+            <div class="flex items-center gap-1 shrink-0">
+              ${journal.custom ? `
+                <button onclick="removeCustomJournal('${safeIssn}')" class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Delete Custom Journal Permanently">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function toggleSingleJournal(issn, enabled) {
+      const idx = state.journals.findIndex(j => j.issn === issn);
+      if (idx >= 0) {
+        const [target] = state.journals.splice(idx, 1);
+        target.enabled = enabled;
+        if (enabled) {
+          // Place re-checked journal at the end of currently checked journals
+          const firstUncheckedIdx = state.journals.findIndex(j => !j.enabled);
+          if (firstUncheckedIdx === -1) {
+            state.journals.push(target);
+          } else {
+            state.journals.splice(firstUncheckedIdx, 0, target);
+          }
+        } else {
+          // Move unchecked journal to the very bottom of the list
+          state.journals.push(target);
+        }
+        saveJournals();
+        if (enabled && !state.articles.some(a => a.issn === issn)) {
+          fetchAllActiveJournals(false);
+        } else {
+          renderArticles();
+        }
+      }
+    }
+
+    function toggleAllJournals(enabled) {
+      state.journals.forEach(j => (j.enabled = enabled));
+      saveJournals();
+      if (enabled) {
+        fetchAllActiveJournals(false);
+      } else {
+        renderArticles();
+      }
+    }
+
+    function removeCustomJournal(issn) {
+      state.journals = state.journals.filter(j => j.issn !== issn);
+      saveJournals();
+      renderIssnDirectory();
+      renderArticles();
+      showToast('Custom journal removed.');
+    }
+
+    function toggleIssnDirectory() {
+      const panel = document.getElementById('issn-directory-panel');
+      const chevron = document.getElementById('issn-directory-chevron');
+      if (!panel) return;
+      const isHidden = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !isHidden);
+      if (chevron) {
+        chevron.classList.toggle('rotate-180', isHidden);
+      }
+      if (isHidden) {
+        renderIssnDirectory();
+      }
+    }
+
+    function fillIssnFormFromDirectory(issn, abbrev) {
+      const issnInput = document.getElementById('custom-issn-input');
+      const abbrevInput = document.getElementById('custom-abbrev-input');
+      if (issnInput) {
+        issnInput.value = issn;
+        issnInput.focus();
+      }
+      if (abbrevInput && abbrev) {
+        abbrevInput.value = abbrev;
+      }
+      showToast(`Filled ISSN ${issn} (${abbrev}) into form.`);
+    }
+
+    function renderIssnDirectory() {
+      const listEl = document.getElementById('issn-directory-list');
+      const searchEl = document.getElementById('issn-directory-search');
+      const pubEl = document.getElementById('issn-directory-pub');
+      if (!listEl) return;
+
+      const q = (searchEl?.value || '').trim().toLowerCase();
+      const pub = pubEl?.value || 'ALL';
+
+      const matches = ISSN_DIRECTORY_CATALOG.filter(entry => {
+        if (pub !== 'ALL' && entry.publisher !== pub) return false;
+        if (!q) return true;
+        return (
+          entry.name.toLowerCase().includes(q) ||
+          entry.abbrev.toLowerCase().includes(q) ||
+          entry.issn.toLowerCase().includes(q) ||
+          entry.publisher.toLowerCase().includes(q) ||
+          (entry.discipline || '').toLowerCase().includes(q)
+        );
+      });
+
+      if (matches.length === 0) {
+        listEl.innerHTML = `<div class="py-4 text-center text-[11px] text-slate-400">No matching journals in directory.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = matches.map(entry => {
+        const existing = state.journals.find(j => j.issn === entry.issn);
+        const isActiveTab = Boolean(existing && existing.enabled);
+        const safeIssn = escapeAttr(entry.issn);
+        const safeName = escapeAttr(entry.name);
+        const safeAbbrev = escapeAttr(entry.abbrev);
+        const safePub = escapeAttr(entry.publisher);
+        const safeDisc = escapeAttr(entry.discipline);
+
+        return `
+          <div class="py-2 flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded border ${getPublisherBadgeStyle(entry.publisher)}">${escapeHtml(entry.publisher)}</span>
+                <button
+                  type="button"
+                  onclick="fillIssnFormFromDirectory('${safeIssn}', '${safeAbbrev}')"
+                  class="text-[11px] font-semibold text-slate-800 hover:text-teal-700 truncate text-left transition"
+                  title="Click to copy ISSN into Add form"
+                >
+                  ${escapeHtml(entry.name)}
+                </button>
+              </div>
+              <div class="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-slate-500">
+                <span>ISSN ${escapeHtml(entry.issn)}</span>
+                <span>•</span>
+                <span>${escapeHtml(entry.abbrev)}</span>
+                ${entry.discipline ? `<span>•</span><span class="font-sans text-slate-400">${escapeHtml(entry.discipline)}</span>` : ''}
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onclick="fillIssnFormFromDirectory('${safeIssn}', '${safeAbbrev}')"
+                class="px-1.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-mono text-slate-700 transition"
+                title="Fill ISSN into input box"
+              >
+                Use ISSN
+              </button>
+              <button
+                type="button"
+                onclick="quickAddPresetJournal('${safeIssn}', '${safeName}', '${safeAbbrev}', '${safePub}', '${safeDisc}')"
+                class="px-2 py-1 rounded text-[10px] font-medium transition ${
+                  isActiveTab
+                    ? 'bg-teal-50 text-teal-700 border border-teal-200'
+                    : 'bg-teal-600 text-white hover:bg-teal-700'
+                }"
+              >
+                ${isActiveTab ? 'Open Tab' : '+ Add'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function resetDefaultJournals() {
+      const customOnes = state.journals.filter(j => j.custom);
+      state.journals = [...structuredClone(DEFAULT_JOURNALS), ...customOnes];
+      saveJournals();
+      fetchAllActiveJournals(false);
+      showToast('Restored all default journals (kept your custom ISSN tabs).');
+    }
+
+    async function quickAddPresetJournal(issn, name, abbrev, publisher, discipline) {
+      const existing = state.journals.find(j => j.issn === issn);
+      if (existing) {
+        existing.enabled = true;
+        saveJournals();
+        selectJournalTab(issn);
+        closeAllDrawers();
+        showToast(`Switched to ${abbrev} tab.`);
+        return;
+      }
+
+      const newJournal = {
+        issn,
+        name,
+        shortName: abbrev,
+        abbrev,
+        publisher,
+        discipline,
+        asapUrl: `https://search.crossref.org/?q=${encodeURIComponent(issn)}&from_ui=yes`,
+        enabled: true,
+        custom: true
+      };
+
+      state.journals.push(newJournal);
+      saveJournals();
+      state.selectedJournalIssn = issn;
+      renderJournalTabs();
+      updateTabContextBar();
+      closeAllDrawers();
+      showToast(`Added "${name}" tab!`);
+
+      const items = await fetchJournalWorks(newJournal);
+      if (Array.isArray(items)) {
+        state.articles = [...items, ...state.articles.filter(a => a.issn !== issn)];
+      } else {
+        state.failedIssns.add(issn);
+      }
+      renderJournalTabs();
+      renderArticles();
+    }
+
+    async function handleAddCustomJournal(event) {
+      event.preventDefault();
+      const input = document.getElementById('custom-issn-input');
+      const abbrevInput = document.getElementById('custom-abbrev-input');
+      const discipline = document.getElementById('custom-discipline-select').value;
+      const btn = document.getElementById('add-issn-btn');
+
+      // Format ISSN (e.g., 1520586X -> 1520-586X)
+      let raw = input.value.trim().toUpperCase().replace(/[^0-9X]/g, '');
+      if (raw.length === 8) {
+        raw = `${raw.slice(0, 4)}-${raw.slice(4)}`;
+      } else {
+        raw = input.value.trim().toUpperCase();
+      }
+
+      if (!/^\d{4}-\d{3}[\dX]$/.test(raw)) {
+        showToast('Please enter a valid 8-digit ISSN (e.g. 1520-586X).', 'error');
+        return;
+      }
+
+      const customAbbrev = abbrevInput ? abbrevInput.value.trim() : '';
+
+      const existing = state.journals.find(j => j.issn === raw);
+      if (existing) {
+        existing.enabled = true;
+        if (customAbbrev) {
+          existing.abbrev = customAbbrev;
+          existing.shortName = customAbbrev;
+        }
+        saveJournals();
+        selectJournalTab(raw);
+        closeAllDrawers();
+        showToast(`${existing.abbrev} is enabled in your top tabs.`);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Looking up...</span>`;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch(`https://api.crossref.org/journals/${encodeURIComponent(raw)}`);
+        if (!res.ok) throw new Error('ISSN not found in Crossref');
+        const json = await res.json();
+        const meta = json.message;
+
+        const title = meta.title || `Journal (${raw})`;
+        const rawPub = meta.publisher || 'Other';
+        let normalizedPub = 'Other';
+        if (/american chemical society/i.test(rawPub)) normalizedPub = 'ACS';
+        else if (/wiley/i.test(rawPub)) normalizedPub = 'Wiley';
+        else if (/nature|springer/i.test(rawPub)) normalizedPub = 'Nature';
+        else if (/royal society of chemistry/i.test(rawPub)) normalizedPub = 'RSC';
+        else if (/american physical society/i.test(rawPub)) normalizedPub = 'APS';
+        else if (/american institute of physics|aip publishing/i.test(rawPub)) normalizedPub = 'AIP';
+        else if (/elsevier/i.test(rawPub)) normalizedPub = 'Elsevier';
+        else if (/aaas|science/i.test(rawPub)) normalizedPub = 'AAAS';
+        else normalizedPub = rawPub.split(' ')[0].slice(0, 12);
+
+        const displayAbbrev = customAbbrev || (title.length > 22 ? title.slice(0, 20) + '…' : title);
+
+        const newJournal = {
+          issn: raw,
+          name: title,
+          shortName: displayAbbrev,
+          abbrev: displayAbbrev,
+          publisher: normalizedPub,
+          discipline,
+          asapUrl: `https://search.crossref.org/?q=${encodeURIComponent(raw)}&from_ui=yes`,
+          enabled: true,
+          custom: true
+        };
+
+        // Insert near the front (right after 'All Journals') so it's immediately visible on the tab bar
+        state.journals.unshift(newJournal);
+        saveJournals();
+        input.value = '';
+        if (abbrevInput) abbrevInput.value = '';
+        state.selectedJournalIssn = raw;
+        renderJournalTabs();
+        updateTabContextBar();
+        closeAllDrawers();
+        showToast(`Permanently added "${displayAbbrev}" (${raw}) to your top tabs!`);
+
+        // Fetch this journal's works directly without being blocked by global isLoading
+        const items = await fetchJournalWorks(newJournal);
+        if (Array.isArray(items)) {
+          state.articles = [...items, ...state.articles.filter(a => a.issn !== raw)];
+        } else {
+          state.failedIssns.add(raw);
+        }
+        renderJournalTabs();
+        renderArticles();
+      } catch (err) {
+        showToast(`Could not resolve ISSN ${raw} via Crossref.`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="plus" class="w-3.5 h-3.5"></i><span>Add to Tabs</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 8. BOOKMARKS / READING LIST & CITATION EXPORT (BIBTEX / RIS)
+     * ============================================================================
+     */
+    function toggleBookmark(doi) {
+      if (!doi) return;
+      const existingIdx = state.bookmarks.findIndex(b => b.doi === doi);
+
+      if (existingIdx >= 0) {
+        state.bookmarks.splice(existingIdx, 1);
+        showToast('Removed from Reading List.');
+      } else {
+        const article = state.articles.find(a => a.doi === doi);
+        if (article) {
+          const journal = getJournalByIssn(article.issn);
+          state.bookmarks.unshift({
+            ...article,
+            journalName: journal.name,
+            journalAbbrev: journal.abbrev,
+            publisher: journal.publisher,
+            savedAt: new Date().toISOString()
+          });
+          showToast('Saved to Reading List.');
+        }
+      }
+
+      saveBookmarks();
+      renderArticles();
+    }
+
+    function clearAllBookmarks() {
+      if (state.bookmarks.length === 0) return;
+      state.bookmarks = [];
+      saveBookmarks();
+      renderArticles();
+      showToast('Reading List cleared.');
+    }
+
+    function updateBookmarkCounters() {
+      const count = state.bookmarks.length;
+      document.getElementById('desktop-bookmark-count').textContent = count;
+      document.getElementById('drawer-bookmark-total').textContent = count;
+
+      const mobileBadge = document.getElementById('mobile-bookmark-count');
+      mobileBadge.textContent = count;
+      mobileBadge.classList.toggle('hidden', count === 0);
+    }
+
+    function renderBookmarksDrawer() {
+      const container = document.getElementById('bookmarks-list');
+      if (state.bookmarks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 px-4">
+            <div class="w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="bookmark-plus" class="w-5 h-5"></i>
+            </div>
+            <p class="text-sm font-semibold text-slate-800 mb-1">Your Reading List is empty</p>
+            <p class="text-xs text-slate-500">Click the bookmark icon on any ASAP paper to save it here for BibTeX or RIS export.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = state.bookmarks.map(item => {
+        const safeDoi = escapeAttr(item.doi);
+        return `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white transition">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="text-[11px] font-bold text-teal-700">${escapeHtml(item.journalAbbrev || item.issn)}</span>
+              <span class="text-[11px] font-mono text-slate-400">${escapeHtml(item.publishedDate)}</span>
+            </div>
+            <a href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer"
+               class="article-title text-xs font-semibold text-slate-900 hover:text-teal-700 hover:underline block mb-1.5 leading-snug">
+              ${item.title}
+            </a>
+            <p class="text-[11px] text-slate-500 truncate mb-2.5">${escapeHtml(item.authors.join(', '))}</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200/70">
+              <span class="font-mono text-[10px] text-slate-500 truncate max-w-[170px]">${escapeHtml(item.doi)}</span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="copySingleBibtex('${safeDoi}')" class="px-2 py-1 rounded bg-white border border-slate-200 text-[11px] font-mono text-slate-700 hover:bg-slate-100 transition">
+                  Copy BibTeX
+                </button>
+                <button onclick="toggleBookmark('${safeDoi}')" class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Remove">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function generateBibtexEntry(article) {
+      const journal = getJournalByIssn(article.issn);
+      const year = (article.publishedDate || '2026').slice(0, 4);
+      const firstAuthorLast = (article.authors[0] || 'ChemASAP').split(' ').pop().replace(/[^a-zA-Z]/g, '');
+      const citeKey = `${firstAuthorLast}${year}_${(article.doi || '').slice(-5).replace(/[^a-zA-Z0-9]/g, '')}`;
+      const authorsBib = article.authors.join(' and ');
+      const cleanTitle = stripHtml(article.title);
+
+      return `@article{${citeKey},
+  author  = {${authorsBib}},
+  title   = {${cleanTitle}},
+  journal = {${journal.name}},
+  year    = {${year}},
+  doi     = {${article.doi}},
+  url     = {${article.url}},
+  note    = {ASAP / Early View}
+}`;
+    }
+
+    function generateRisEntry(article) {
+      const journal = getJournalByIssn(article.issn);
+      const year = (article.publishedDate || '2026').slice(0, 4);
+      const cleanTitle = stripHtml(article.title);
+      const authorLines = article.authors.map(a => `AU  - ${a}`).join('\n');
+
+      return `TY  - JOUR
+TI  - ${cleanTitle}
+${authorLines}
+JO  - ${journal.name}
+PY  - ${year}
+DA  - ${article.publishedDate.replace(/-/g, '/')}
+DO  - ${article.doi}
+UR  - ${article.url}
+ER  -`;
+    }
+
+    function copySingleBibtex(doi) {
+      const article = state.articles.find(a => a.doi === doi) || state.bookmarks.find(b => b.doi === doi);
+      if (!article) return;
+      const bib = generateBibtexEntry(article);
+      copyText(bib, 'BibTeX citation copied to clipboard!');
+    }
+
+    function exportAllBookmarks(format) {
+      if (state.bookmarks.length === 0) {
+        showToast('Save at least one paper to your Reading List first.', 'error');
+        return;
+      }
+
+      const content = format === 'bibtex'
+        ? state.bookmarks.map(generateBibtexEntry).join('\n\n')
+        : state.bookmarks.map(generateRisEntry).join('\n\n');
+
+      const ext = format === 'bibtex' ? 'bib' : 'ris';
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `AubreyLab_ASAP_ReadingList_${new Date().toISOString().slice(0, 10)}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast(`Downloaded ${state.bookmarks.length} citations (.${ext.toUpperCase()})`);
+    }
+
+    /**
+     * ============================================================================
+     * 9. DRAWER NAVIGATION & UTILITIES
+     * ============================================================================
+     */
+    function openDrawer(type) {
+      closeAllDrawers(false);
+      const backdrop = document.getElementById('drawer-backdrop');
+      backdrop.classList.remove('hidden');
+      requestAnimationFrame(() => backdrop.classList.remove('opacity-0'));
+
+      const drawerId = type === 'journals' ? 'journals-drawer' : 'bookmarks-drawer';
+      document.getElementById(drawerId).classList.remove('translate-x-full');
+    }
+
+    function closeAllDrawers(hideBackdrop = true) {
+      document.getElementById('journals-drawer').classList.add('translate-x-full');
+      document.getElementById('bookmarks-drawer').classList.add('translate-x-full');
+
+      if (hideBackdrop) {
+        const backdrop = document.getElementById('drawer-backdrop');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => backdrop.classList.add('hidden'), 250);
+      }
+    }
+
+    function copyText(text, successMsg = 'Copied to clipboard') {
+      const helper = document.getElementById('clipboard-helper');
+      helper.value = text;
+      helper.select();
+      helper.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        showToast('Could not copy automatically.', 'error');
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const isError = type === 'error';
+
+      toast.className = `pointer-events-auto flex items-center gap-2 px-3.5 py-2.5 rounded-lg shadow-lg border text-xs font-medium transition-all duration-300 transform translate-y-2 opacity-0 ${
+        isError
+          ? 'bg-rose-900 text-white border-rose-700'
+          : 'bg-navy-900 text-white border-slate-700'
+      }`;
+
+      toast.innerHTML = `
+        <i data-lucide="${isError ? 'alert-circle' : 'check-circle-2'}" class="w-4 h-4 ${isError ? 'text-rose-300' : 'text-teal-400'} shrink-0"></i>
+        <span>${escapeHtml(message)}</span>
+      `;
+
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+
+    function formatAuthorsList(authors, maxVisible) {
+      if (!authors || authors.length === 0) return '';
+      if (authors.length <= maxVisible) return authors.join(', ');
+      return `${authors.slice(0, maxVisible).join(', ')} et al. (+${authors.length - maxVisible})`;
+    }
+
+    function stripHtml(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || '';
+    }
+
+    function sanitizeBasicHtml(html) {
+      // Preserve chemical formula sub/sup/i tags from Crossref while stripping anything else
+      const allowed = html
+        .replace(/<(?!\/?(sub|sup|i|em|b|strong)\b)[^>]+>/gi, '');
+      return allowed;
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str);
+    }
+  </script>
+</body>
+</html>
