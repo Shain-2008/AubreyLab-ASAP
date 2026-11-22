@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
   <title>AubreyLab ASAP — Chemistry Peer-Reviewed ASAP Aggregator</title>
+  <!-- Mobile App / PWA Meta Tags -->
+  <meta name="application-name" content="AubreyLab ASAP" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AubreyLab ASAP" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0a1628" />
+  <link id="pwa-manifest-link" rel="manifest" />
+  <link id="apple-touch-icon-link" rel="apple-touch-icon" />
+  <link id="favicon-link" rel="icon" type="image/png" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Inter & JetBrains Mono -->
@@ -36,6 +46,12 @@
     };
   </script>
   <style>
+    /* Safe area padding for iPhone notch / Dynamic Island when launched from home screen */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      -webkit-tap-highlight-color: transparent;
+    }
     /* Custom scrollbar for clean scientific dashboard feel */
     ::-webkit-scrollbar {
       width: 6px;
@@ -146,6 +162,9 @@
 
           <!-- Mobile Drawer Trigger Buttons -->
           <div class="flex md:hidden items-center gap-2">
+            <button onclick="openInstallModal()" class="p-2 rounded-lg border border-slate-200 bg-white text-teal-700 hover:bg-teal-50" title="Add to Phone Home Screen">
+              <i data-lucide="smartphone" class="w-4 h-4"></i>
+            </button>
             <button onclick="openDrawer('journals')" class="p-2 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" title="Manage Journals">
               <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
             </button>
@@ -190,6 +209,16 @@
           >
             <i data-lucide="layers" class="w-3.5 h-3.5 text-navy-700"></i>
             <span>Customize Tabs (<span id="active-journal-count">23</span>)</span>
+          </button>
+
+          <!-- Mobile App Install Guide Button (Desktop) -->
+          <button
+            onclick="openInstallModal()"
+            class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-2xs"
+            title="Optional: Add AubreyLab ASAP as an app icon on your phone"
+          >
+            <i data-lucide="smartphone" class="w-3.5 h-3.5 text-teal-600"></i>
+            <span>Get App</span>
           </button>
 
           <!-- Reading List Drawer Button (Desktop) -->
@@ -648,465 +677,88 @@
   <!-- Hidden textarea for reliable clipboard fallback -->
   <textarea id="clipboard-helper" class="fixed -top-96 -left-96 opacity-0" aria-hidden="true"></textarea>
 
+  <!-- Mobile App Install Modal (Optional iOS & Android Home Screen App Feature) -->
+  <div id="install-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
+      <div class="px-5 py-4 bg-navy-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-navy-700 to-teal-600 flex items-center justify-center border border-teal-400/30">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 20.66 7 20.66 17 12 22 3.34 17 3.34 7 12 2" />
+              <circle cx="12" cy="12" r="4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold">Install AubreyLab ASAP App</h3>
+            <p class="text-[11px] text-teal-300">Works full-screen on iPhone &amp; Android</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeInstallModal()" class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs text-slate-600">
+        <!-- Direct Native Install Button (shown automatically on Android Chrome / Edge when supported) -->
+        <div id="native-install-box" class="hidden p-3 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-between gap-3">
+          <div>
+            <p class="font-semibold text-teal-950">One-Tap App Install Ready</p>
+            <p class="text-[11px] text-teal-800">Add directly to your home screen &amp; app drawer.</p>
+          </div>
+          <button type="button" onclick="triggerNativeInstall()" class="px-3.5 py-2 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-700 transition shrink-0">
+            Install Now
+          </button>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-bold text-navy-900 mb-1 flex items-center gap-1.5">
+              <span>iPhone / iPad (Safari):</span>
+            </p>
+            <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600">
+              <li>Open your GitHub Pages link in <strong>Safari</strong>.</li>
+              <li>Tap the <strong>Share</strong> icon (<span class="font-mono">⎙</span> square with up arrow) at the bottom.</li>
+              <li>Scroll down and tap <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.</li>
+            </ol>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-bold text-navy-900 mb-1 flex items-center gap-1.5">
+              <span>Android (Chrome):</span>
+            </p>
+            <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600">
+              <li>Open your GitHub Pages link in <strong>Chrome</strong>.</li>
+              <li>Tap the <strong>⋮</strong> menu in the top-right corner.</li>
+              <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+            </ol>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400">
+          Once installed, <strong>AubreyLab ASAP</strong> opens in its own standalone app window without browser bars and remembers your selected journals &amp; reading list on your phone.
+        </p>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button type="button" onclick="closeInstallModal()" class="px-4 py-2 rounded-lg bg-navy-800 text-white text-xs font-medium hover:bg-navy-700 transition">
+          Got it
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    /**
-     * ============================================================================
-     * 1. CURATED CHEMISTRY JOURNALS & METADATA
-     * ============================================================================
-     */
-    const DEFAULT_JOURNALS = [
-      {
-        issn: '1520-5126',
-        name: 'Journal of the American Chemical Society',
-        shortName: 'J. Am. Chem. Soc.',
-        abbrev: 'JACS',
-        publisher: 'ACS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.acs.org/toc/jacsat/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1521-3773',
-        name: 'Angewandte Chemie International Edition',
-        shortName: 'Angew. Chem. Int. Ed.',
-        abbrev: 'Angew. Chem.',
-        publisher: 'Wiley',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://onlinelibrary.wiley.com/toc/15213773/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1755-4349',
-        name: 'Nature Chemistry',
-        shortName: 'Nat. Chem.',
-        abbrev: 'Nat. Chem.',
-        publisher: 'Nature',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://www.nature.com/nchem/research-articles',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1476-4687',
-        name: 'Nature',
-        shortName: 'Nature',
-        abbrev: 'Nature',
-        publisher: 'Nature',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://www.nature.com/nature/research-articles',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1095-9203',
-        name: 'Science',
-        shortName: 'Science',
-        abbrev: 'Science',
-        publisher: 'AAAS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://www.science.org/toc/science/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1091-6490',
-        name: 'Proceedings of the National Academy of Sciences',
-        shortName: 'PNAS',
-        abbrev: 'PNAS',
-        publisher: 'NAS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://www.pnas.org/toc/pnas/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '2041-6539',
-        name: 'Chemical Science',
-        shortName: 'Chem. Sci.',
-        abbrev: 'Chem. Sci.',
-        publisher: 'RSC',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/sc#!recentarticles&adv',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '2451-9294',
-        name: 'Chem',
-        shortName: 'Chem',
-        abbrev: 'Chem',
-        publisher: 'Cell Press',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://www.cell.com/chem/inpress',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1523-7052',
-        name: 'Organic Letters',
-        shortName: 'Org. Lett.',
-        abbrev: 'Org. Lett.',
-        publisher: 'ACS',
-        discipline: 'Organic',
-        asapUrl: 'https://pubs.acs.org/toc/orlef7/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1520-6904',
-        name: 'The Journal of Organic Chemistry',
-        shortName: 'J. Org. Chem.',
-        abbrev: 'JOC',
-        publisher: 'ACS',
-        discipline: 'Organic',
-        asapUrl: 'https://pubs.acs.org/toc/joceah/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '2155-5435',
-        name: 'ACS Catalysis',
-        shortName: 'ACS Catal.',
-        abbrev: 'ACS Catal.',
-        publisher: 'ACS',
-        discipline: 'Catalysis',
-        asapUrl: 'https://pubs.acs.org/toc/accacs/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1364-548X',
-        name: 'Chemical Communications',
-        shortName: 'Chem. Commun.',
-        abbrev: 'ChemComm',
-        publisher: 'RSC',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/cc#!recentarticles&adv',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1520-510X',
-        name: 'Inorganic Chemistry',
-        shortName: 'Inorg. Chem.',
-        abbrev: 'Inorg. Chem.',
-        publisher: 'ACS',
-        discipline: 'Inorganic',
-        asapUrl: 'https://pubs.acs.org/toc/inocaj/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '2731-0582',
-        name: 'Nature Synthesis',
-        shortName: 'Nat. Synth.',
-        abbrev: 'Nat. Synth.',
-        publisher: 'Nature',
-        discipline: 'Synthesis',
-        asapUrl: 'https://www.nature.com/natsynth/research-articles',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1520-4898',
-        name: 'Accounts of Chemical Research',
-        shortName: 'Acc. Chem. Res.',
-        abbrev: 'Acc. Chem. Res.',
-        publisher: 'ACS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.acs.org/toc/achre4/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1520-6890',
-        name: 'Chemical Reviews',
-        shortName: 'Chem. Rev.',
-        abbrev: 'Chem. Rev.',
-        publisher: 'ACS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.acs.org/toc/chreay/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1520-4804',
-        name: 'Journal of Medicinal Chemistry',
-        shortName: 'J. Med. Chem.',
-        abbrev: 'J. Med. Chem.',
-        publisher: 'ACS',
-        discipline: 'Organic',
-        asapUrl: 'https://pubs.acs.org/toc/jmcmar/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1936-086X',
-        name: 'ACS Nano',
-        shortName: 'ACS Nano',
-        abbrev: 'ACS Nano',
-        publisher: 'ACS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.acs.org/toc/ancac3/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1463-9270',
-        name: 'Green Chemistry',
-        shortName: 'Green Chem.',
-        abbrev: 'Green Chem.',
-        publisher: 'RSC',
-        discipline: 'Synthesis',
-        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/gc#!recentarticles&adv',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1520-5002',
-        name: 'Chemistry of Materials',
-        shortName: 'Chem. Mater.',
-        abbrev: 'Chem. Mater.',
-        publisher: 'ACS',
-        discipline: 'Inorganic',
-        asapUrl: 'https://pubs.acs.org/toc/cmatex/0/0',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1477-0539',
-        name: 'Organic & Biomolecular Chemistry',
-        shortName: 'Org. Biomol. Chem.',
-        abbrev: 'OBC',
-        publisher: 'RSC',
-        discipline: 'Organic',
-        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/ob#!recentarticles&adv',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1477-9234',
-        name: 'Dalton Transactions',
-        shortName: 'Dalton Trans.',
-        abbrev: 'Dalton Trans.',
-        publisher: 'RSC',
-        discipline: 'Inorganic',
-        asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/dt#!recentarticles&adv',
-        enabled: true,
-        custom: false
-      },
-      {
-        issn: '1948-7185',
-        name: 'The Journal of Physical Chemistry Letters',
-        shortName: 'J. Phys. Chem. Lett.',
-        abbrev: 'JPCL',
-        publisher: 'ACS',
-        discipline: 'General Chemistry',
-        asapUrl: 'https://pubs.acs.org/toc/jpclcd/0/0',
-        enabled: true,
-        custom: false
-      }
-    ];
-
-    /**
-     * Fallback cached recent ASAP papers used only if Crossref rate-limits or a network error occurs
-     */
-    const FALLBACK_ARTICLES = [
-      {
-        doi: '10.1021/jacs.5c01420',
-        title: 'Enantioselective Electrochemical C(sp<sup>3</sup>)–H Amination of Unactivated Alkanes via Dual Nickel/Photoredox Catalysis',
-        authors: ['Elena R. Vance', 'Marcus K. Thorne', 'Hiroshi Takahashi', 'David W. MacMillan'],
-        issn: '1520-5126',
-        publishedDate: '2026-11-20',
-        timestamp: Date.now() - 3600 * 1000 * 14,
-        url: 'https://doi.org/10.1021/jacs.5c01420',
-        type: 'journal-article',
-        isFallback: true
-      },
-      {
-        doi: '10.1002/anie.202609812',
-        title: 'Isolable Room-Temperature Stable Bismuthinidene Radical Cations: Electronic Structure and Reversible Small-Molecule Activation',
-        authors: ['Lukas Lindner', 'Sophie M. Weber', 'Crispin Lichtenberg'],
-        issn: '1521-3773',
-        publishedDate: '2026-11-20',
-        timestamp: Date.now() - 3600 * 1000 * 18,
-        url: 'https://doi.org/10.1002/anie.202609812',
-        type: 'journal-article',
-        isFallback: true
-      },
-      {
-        doi: '10.1038/s41557-026-01944-x',
-        title: 'Programmable Skeletal Editing of Pyridines into Pyrimidines via Nitrogen-Atom Insertion',
-        authors: ['Clara Jin', 'Rohan Patel', 'Richmond Sarpong'],
-        issn: '1755-4349',
-        publishedDate: '2026-11-19',
-        timestamp: Date.now() - 3600 * 1000 * 28,
-        url: 'https://doi.org/10.1038/s41557-026-01944-x',
-        type: 'journal-article',
-        isFallback: true
-      },
-      {
-        doi: '10.1039/D6SC04821A',
-        title: 'Machine-Learning-Guided Discovery of Cooperative Frustrated Lewis Pairs for Direct CO<sub>2</sub> Hydrogenation to Methanol',
-        authors: ['Amelia G. Foster', 'Wei-Lin Chen', 'Douglas W. Stephan'],
-        issn: '2041-6539',
-        publishedDate: '2026-11-19',
-        timestamp: Date.now() - 3600 * 1000 * 32,
-        url: 'https://doi.org/10.1039/D6SC04821A',
-        type: 'journal-article',
-        isFallback: true
-      },
-      {
-        doi: '10.1021/acs.orglett.6c03109',
-        title: 'Atroposelective Synthesis of Axially Chiral Biaryl N-Oxides via Chiral Phosphoric Acid-Catalyzed N-Oxidation',
-        authors: ['Kenji Sato', 'Yuki Morita', 'Scott J. Miller'],
-        issn: '1523-7052',
-        publishedDate: '2026-11-18',
-        timestamp: Date.now() - 3600 * 1000 * 44,
-        url: 'https://doi.org/10.1021/acs.orglett.6c03109',
-        type: 'journal-article',
-        isFallback: true
-      },
-      {
-        doi: '10.1021/acscatal.6c05211',
-        title: 'Single-Atom Ru<sub>1</sub>/CeO<sub>2</sub> Catalysts with Dynamic Oxygen Vacancies for Low-Temperature Ammonia Synthesis',
-        authors: ['Hannah M. Lind', 'Takeshi Mori', 'Chorkendorff Ib'],
-        issn: '2155-5435',
-        publishedDate: '2026-11-18',
-        timestamp: Date.now() - 3600 * 1000 * 50,
-        url: 'https://doi.org/10.1021/acscatal.6c05211',
-        type: 'journal-article',
-        isFallback: true
-      }
-    ];
-
     const STORAGE_KEYS = {
-      JOURNALS: 'aubrey_asap_journals_v1',
-      CUSTOM_JOURNALS: 'aubrey_asap_custom_journals_v1',
-      BOOKMARKS: 'aubrey_asap_bookmarks_v1',
-      VIEW_MODE: 'aubrey_asap_view_mode_v1',
-      SHOW_TOC: 'aubrey_asap_show_toc_v1'
+      JOURNALS: 'aubreylab_asap_journals_v1',
+      CUSTOM_JOURNALS: 'aubreylab_asap_custom_journals_v1',
+      BOOKMARKS: 'aubreylab_asap_bookmarks_v1',
+      VIEW_MODE: 'aubreylab_asap_view_mode_v1',
+      SHOW_TOC: 'aubreylab_asap_show_toc_v1'
     };
 
-    const ISSN_DIRECTORY_CATALOG = [
-      // ACS
-      { issn: '1520-5126', name: 'Journal of the American Chemical Society', abbrev: 'JACS', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1523-7052', name: 'Organic Letters', abbrev: 'Org. Lett.', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '1520-6904', name: 'The Journal of Organic Chemistry', abbrev: 'JOC', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '2155-5435', name: 'ACS Catalysis', abbrev: 'ACS Catal.', publisher: 'ACS', discipline: 'Catalysis' },
-      { issn: '1520-510X', name: 'Inorganic Chemistry', abbrev: 'Inorg. Chem.', publisher: 'ACS', discipline: 'Inorganic' },
-      { issn: '1520-4898', name: 'Accounts of Chemical Research', abbrev: 'Acc. Chem. Res.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-6890', name: 'Chemical Reviews', abbrev: 'Chem. Rev.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-4804', name: 'Journal of Medicinal Chemistry', abbrev: 'J. Med. Chem.', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '1936-086X', name: 'ACS Nano', abbrev: 'ACS Nano', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-5002', name: 'Chemistry of Materials', abbrev: 'Chem. Mater.', publisher: 'ACS', discipline: 'Inorganic' },
-      { issn: '1948-7185', name: 'The Journal of Physical Chemistry Letters', abbrev: 'JPCL', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-586X', name: 'Organic Process Research & Development', abbrev: 'OPRD', publisher: 'ACS', discipline: 'Synthesis' },
-      { issn: '1520-6041', name: 'Organometallics', abbrev: 'Organometallics', publisher: 'ACS', discipline: 'Inorganic' },
-      { issn: '2330-443X', name: 'ACS Central Science', abbrev: 'ACS Cent. Sci.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2161-1653', name: 'ACS Synthetic Biology', abbrev: 'ACS Synth. Biol.', publisher: 'ACS', discipline: 'Synthesis' },
-      { issn: '1520-6882', name: 'Analytical Chemistry', abbrev: 'Anal. Chem.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-5827', name: 'Langmuir', abbrev: 'Langmuir', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-5835', name: 'Macromolecules', abbrev: 'Macromolecules', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1525-7797', name: 'Biomacromolecules', abbrev: 'Biomacromolecules', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1554-8937', name: 'ACS Chemical Biology', abbrev: 'ACS Chem. Biol.', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '1528-7505', name: 'Crystal Growth & Design', abbrev: 'Cryst. Growth Des.', publisher: 'ACS', discipline: 'Inorganic' },
-      { issn: '1520-5029', name: 'Energy & Fuels', abbrev: 'Energy Fuels', publisher: 'ACS', discipline: 'Catalysis' },
-      { issn: '1530-6984', name: 'Nano Letters', abbrev: 'Nano Lett.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1944-8244', name: 'ACS Applied Materials & Interfaces', abbrev: 'ACS Appl. Mater. Interfaces', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2470-1343', name: 'ACS Energy Letters', abbrev: 'ACS Energy Lett.', publisher: 'ACS', discipline: 'Catalysis' },
-      { issn: '1520-5053', name: 'Environmental Science & Technology', abbrev: 'Environ. Sci. Technol.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2328-8930', name: 'Environmental Science & Technology Letters', abbrev: 'Environ. Sci. Technol. Lett.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2168-0485', name: 'ACS Sustainable Chemistry & Engineering', abbrev: 'ACS Sustain. Chem. Eng.', publisher: 'ACS', discipline: 'Synthesis' },
-      { issn: '1549-960X', name: 'Journal of Chemical Information and Modeling', abbrev: 'J. Chem. Inf. Model.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1549-9626', name: 'Journal of Chemical Theory and Computation', abbrev: 'J. Chem. Theory Comput.', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '1520-6025', name: 'Journal of Natural Products', abbrev: 'J. Nat. Prod.', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '1543-8392', name: 'Molecular Pharmaceutics', abbrev: 'Mol. Pharmaceutics', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '1520-5215', name: 'Journal of the American Society for Mass Spectrometry', abbrev: 'JASMS', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2694-2437', name: 'JACS Au', abbrev: 'JACS Au', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2694-247X', name: 'ACS Organic & Inorganic Au', abbrev: 'ACS Org. Inorg. Au', publisher: 'ACS', discipline: 'Synthesis' },
-      { issn: '2694-2429', name: 'ACS Bio & Med Chem Au', abbrev: 'ACS Bio Med Chem Au', publisher: 'ACS', discipline: 'Organic' },
-      { issn: '2694-2496', name: 'ACS Physical Chem Au', abbrev: 'ACS Phys. Chem Au', publisher: 'ACS', discipline: 'General Chemistry' },
-      { issn: '2694-2453', name: 'ACS Materials Au', abbrev: 'ACS Mater. Au', publisher: 'ACS', discipline: 'Inorganic' },
-      // Wiley
-      { issn: '1521-3773', name: 'Angewandte Chemie International Edition', abbrev: 'Angew. Chem.', publisher: 'Wiley', discipline: 'General Chemistry' },
-      { issn: '1521-3765', name: 'Chemistry – A European Journal', abbrev: 'Chem. Eur. J.', publisher: 'Wiley', discipline: 'General Chemistry' },
-      { issn: '1615-4169', name: 'Advanced Synthesis & Catalysis', abbrev: 'Adv. Synth. Catal.', publisher: 'Wiley', discipline: 'Catalysis' },
-      { issn: '1864-564X', name: 'ChemSusChem', abbrev: 'ChemSusChem', publisher: 'Wiley', discipline: 'Catalysis' },
-      { issn: '2196-0216', name: 'ChemElectroChem', abbrev: 'ChemElectroChem', publisher: 'Wiley', discipline: 'Catalysis' },
-      { issn: '1861-471X', name: 'ChemCatChem', abbrev: 'ChemCatChem', publisher: 'Wiley', discipline: 'Catalysis' },
-      { issn: '1612-1023', name: 'ChemMedChem', abbrev: 'ChemMedChem', publisher: 'Wiley', discipline: 'Organic' },
-      { issn: '1099-0690', name: 'European Journal of Organic Chemistry', abbrev: 'EurJOC', publisher: 'Wiley', discipline: 'Organic' },
-      { issn: '1099-0682', name: 'European Journal of Inorganic Chemistry', abbrev: 'EurJIC', publisher: 'Wiley', discipline: 'Inorganic' },
-      { issn: '1613-6829', name: 'Small', abbrev: 'Small', publisher: 'Wiley', discipline: 'General Chemistry' },
-      { issn: '1614-7065', name: 'Advanced Functional Materials', abbrev: 'Adv. Funct. Mater.', publisher: 'Wiley', discipline: 'Inorganic' },
-      { issn: '1521-4095', name: 'Advanced Materials', abbrev: 'Adv. Mater.', publisher: 'Wiley', discipline: 'General Chemistry' },
-      { issn: '1521-3935', name: 'Macromolecular Chemistry and Physics', abbrev: 'Macromol. Chem. Phys.', publisher: 'Wiley', discipline: 'General Chemistry' },
-      { issn: '1521-3927', name: 'Macromolecular Rapid Communications', abbrev: 'Macromol. Rapid Commun.', publisher: 'Wiley', discipline: 'General Chemistry' },
-      // Nature
-      { issn: '1755-4349', name: 'Nature Chemistry', abbrev: 'Nat. Chem.', publisher: 'Nature', discipline: 'General Chemistry' },
-      { issn: '1476-4687', name: 'Nature', abbrev: 'Nature', publisher: 'Nature', discipline: 'General Chemistry' },
-      { issn: '2731-0582', name: 'Nature Synthesis', abbrev: 'Nat. Synth.', publisher: 'Nature', discipline: 'Synthesis' },
-      { issn: '2522-5839', name: 'Nature Catalysis', abbrev: 'Nat. Catal.', publisher: 'Nature', discipline: 'Catalysis' },
-      { issn: '1476-4660', name: 'Nature Materials', abbrev: 'Nat. Mater.', publisher: 'Nature', discipline: 'Inorganic' },
-      { issn: '1755-4330', name: 'Nature Geoscience', abbrev: 'Nat. Geosci.', publisher: 'Nature', discipline: 'General Chemistry' },
-      { issn: '2041-1723', name: 'Nature Communications', abbrev: 'Nat. Commun.', publisher: 'Nature', discipline: 'General Chemistry' },
-      // RSC
-      { issn: '2041-6539', name: 'Chemical Science', abbrev: 'Chem. Sci.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1364-548X', name: 'Chemical Communications', abbrev: 'ChemComm', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1460-4744', name: 'Chemical Society Reviews', abbrev: 'Chem. Soc. Rev.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1463-9270', name: 'Green Chemistry', abbrev: 'Green Chem.', publisher: 'RSC', discipline: 'Synthesis' },
-      { issn: '1477-0539', name: 'Organic & Biomolecular Chemistry', abbrev: 'OBC', publisher: 'RSC', discipline: 'Organic' },
-      { issn: '1477-9234', name: 'Dalton Transactions', abbrev: 'Dalton Trans.', publisher: 'RSC', discipline: 'Inorganic' },
-      { issn: '2051-6355', name: 'Materials Horizons', abbrev: 'Mater. Horiz.', publisher: 'RSC', discipline: 'Materials Science' },
-      { issn: '2044-4761', name: 'Catalysis Science & Technology', abbrev: 'Catal. Sci. Technol.', publisher: 'RSC', discipline: 'Catalysis' },
-      { issn: '1364-5528', name: 'The Analyst', abbrev: 'Analyst', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '2046-2069', name: 'RSC Advances', abbrev: 'RSC Adv.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1463-9084', name: 'Physical Chemistry Chemical Physics', abbrev: 'PCCP', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1364-5463', name: 'Journal of Materials Chemistry', abbrev: 'J. Mater. Chem.', publisher: 'RSC', discipline: 'Inorganic' },
-      { issn: '2050-7488', name: 'Journal of Materials Chemistry A', abbrev: 'J. Mater. Chem. A', publisher: 'RSC', discipline: 'Catalysis' },
-      { issn: '2050-7526', name: 'Journal of Materials Chemistry B', abbrev: 'J. Mater. Chem. B', publisher: 'RSC', discipline: 'Organic' },
-      { issn: '2050-750X', name: 'Journal of Materials Chemistry C', abbrev: 'J. Mater. Chem. C', publisher: 'RSC', discipline: 'Inorganic' },
-      { issn: '1754-5692', name: 'Energy & Environmental Science', abbrev: 'Energy Environ. Sci.', publisher: 'RSC', discipline: 'Catalysis' },
-      { issn: '1460-2733', name: 'Faraday Discussions', abbrev: 'Faraday Discuss.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1751-8113', name: 'Nanoscale', abbrev: 'Nanoscale', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '2040-3364', name: 'Nanoscale Advances', abbrev: 'Nanoscale Adv.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1759-9954', name: 'Polymer Chemistry', abbrev: 'Polym. Chem.', publisher: 'RSC', discipline: 'Synthesis' },
-      { issn: '1364-5501', name: 'New Journal of Chemistry', abbrev: 'New J. Chem.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1466-8033', name: 'Soft Matter', abbrev: 'Soft Matter', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1463-905X', name: 'Photochemical & Photobiological Sciences', abbrev: 'Photochem. Photobiol. Sci.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1473-0189', name: 'Lab on a Chip', abbrev: 'Lab Chip', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '1757-8981', name: 'ChemSocRev / RSC Chemical Biology', abbrev: 'RSC Chem. Biol.', publisher: 'RSC', discipline: 'Organic' },
-      { issn: '2632-8682', name: 'Sensors & Diagnostics', abbrev: 'Sens. Diagn.', publisher: 'RSC', discipline: 'General Chemistry' },
-      { issn: '2755-2608', name: 'RSC Sustainability', abbrev: 'RSC Sustain.', publisher: 'RSC', discipline: 'Synthesis' }
-    ];
+    const PUBLISHERS = ['ALL', 'ACS', 'Wiley', 'Nature', 'RSC', 'AAAS', 'Cell Press'];
+    const DISCIPLINES = ['ALL', 'General Chemistry', 'Organic', 'Catalysis', 'Inorganic', 'Synthesis', 'Materials'];
 
-    const state = {
-      journals: [],
-      articles: [],
-      bookmarks: [],
-      tocCache: {}, // Map of DOI -> resolved TOI image URL or null
-      failedIssns: new Set(), // Tracks ISSNs that failed or were rate-limited on last fetch
-      showToc: true,
-      tabSearchQuery: '',
-      managerSearchQuery: '',
-      selectedPublisher: 'ALL',
-      selectedDiscipline: 'ALL',
-      selectedJournalIssn: 'ALL',
-      timeFilter: {
-        mode: 'latest', // 'latest' | '1w' | '1m' | '1y' | 'date'
-        specificDate: '' // YYYY-MM-DD when mode === 'date'
-      },
-      searchQuery: '',
-      viewMode: 'cards', // 'cards' | 'table'
-      isLoading: false,
-      usedFallback: false
-    };
-
-    const PUBLISHERS = ['ALL', 'ACS', 'Wiley', 'Nature', 'RSC'];
-    const DISCIPLINES = ['ALL', 'General Chemistry', 'Organic', 'Catalysis', 'Inorganic', 'Synthesis'];
     const TIME_PRESETS = [
       { id: 'latest', label: 'Latest ASAP' },
       { id: '1w', label: '1 Week Ago' },
@@ -1114,12 +766,140 @@
       { id: '1y', label: '1 Year Ago' }
     ];
 
-    /**
-     * ============================================================================
-     * 3. INITIALIZATION & PERSISTENCE
-     * ============================================================================
-     */
+    const DEFAULT_JOURNALS = [
+      { issn: '1520-5126', name: 'Journal of the American Chemical Society', shortName: 'JACS', abbrev: 'J. Am. Chem. Soc.', publisher: 'ACS', discipline: 'General Chemistry', asapUrl: 'https://pubs.acs.org/toc/jacsat/0/0', enabled: true },
+      { issn: '1521-3773', name: 'Angewandte Chemie International Edition', shortName: 'Angew.', abbrev: 'Angew. Chem. Int. Ed.', publisher: 'Wiley', discipline: 'General Chemistry', asapUrl: 'https://onlinelibrary.wiley.com/toc/15213773/0/0', enabled: true },
+      { issn: '1755-4349', name: 'Nature Chemistry', shortName: 'Nat. Chem.', abbrev: 'Nat. Chem.', publisher: 'Nature', discipline: 'General Chemistry', asapUrl: 'https://www.nature.com/nchem/research-articles', enabled: true },
+      { issn: '2041-6539', name: 'Chemical Science', shortName: 'Chem. Sci.', abbrev: 'Chem. Sci.', publisher: 'RSC', discipline: 'General Chemistry', asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/sc#!recentarticles&adv', enabled: true },
+      { issn: '1520-6904', name: 'The Journal of Organic Chemistry', shortName: 'JOC', abbrev: 'J. Org. Chem.', publisher: 'ACS', discipline: 'Organic', asapUrl: 'https://pubs.acs.org/toc/joceah/0/0', enabled: true },
+      { issn: '1523-7052', name: 'Organic Letters', shortName: 'Org. Lett.', abbrev: 'Org. Lett.', publisher: 'ACS', discipline: 'Organic', asapUrl: 'https://pubs.acs.org/toc/orlef7/0/0', enabled: true },
+      { issn: '2155-5435', name: 'ACS Catalysis', shortName: 'ACS Catal.', abbrev: 'ACS Catal.', publisher: 'ACS', discipline: 'Catalysis', asapUrl: 'https://pubs.acs.org/toc/accacs/0/0', enabled: true },
+      { issn: '2520-1158', name: 'Nature Catalysis', shortName: 'Nat. Catal.', abbrev: 'Nat. Catal.', publisher: 'Nature', discipline: 'Catalysis', asapUrl: 'https://www.nature.com/natcatal/research-articles', enabled: true },
+      { issn: '1520-510X', name: 'Inorganic Chemistry', shortName: 'Inorg. Chem.', abbrev: 'Inorg. Chem.', publisher: 'ACS', discipline: 'Inorganic', asapUrl: 'https://pubs.acs.org/toc/inocaj/0/0', enabled: true },
+      { issn: '1364-548X', name: 'Chemical Communications', shortName: 'Chem. Commun.', abbrev: 'Chem. Commun.', publisher: 'RSC', discipline: 'General Chemistry', asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/cc#!recentarticles&adv', enabled: true },
+      { issn: '2731-0582', name: 'Nature Synthesis', shortName: 'Nat. Synth.', abbrev: 'Nat. Synth.', publisher: 'Nature', discipline: 'Synthesis', asapUrl: 'https://www.nature.com/natsynth/research-articles', enabled: true },
+      { issn: '2451-9294', name: 'Chem', shortName: 'Chem', abbrev: 'Chem', publisher: 'Cell Press', discipline: 'General Chemistry', asapUrl: 'https://www.cell.com/chem/newarticles', enabled: true },
+      { issn: '2692-4560', name: 'JACS Au', shortName: 'JACS Au', abbrev: 'JACS Au', publisher: 'ACS', discipline: 'General Chemistry', asapUrl: 'https://pubs.acs.org/toc/jaaucr/0/0', enabled: true },
+      { issn: '1521-3765', name: 'Chemistry – A European Journal', shortName: 'Chem. Eur. J.', abbrev: 'Chem. Eur. J.', publisher: 'Wiley', discipline: 'General Chemistry', asapUrl: 'https://chemistry-europe.onlinelibrary.wiley.com/toc/15213765/0/0', enabled: true },
+      { issn: '1095-9203', name: 'Science', shortName: 'Science', abbrev: 'Science', publisher: 'AAAS', discipline: 'General Chemistry', asapUrl: 'https://www.science.org/toc/science/0/0', enabled: true },
+      { issn: '1476-4687', name: 'Nature', shortName: 'Nature', abbrev: 'Nature', publisher: 'Nature', discipline: 'General Chemistry', asapUrl: 'https://www.nature.com/nature/research-articles', enabled: true },
+      { issn: '1520-6890', name: 'Chemical Reviews', shortName: 'Chem. Rev.', abbrev: 'Chem. Rev.', publisher: 'ACS', discipline: 'General Chemistry', asapUrl: 'https://pubs.acs.org/toc/chreay/0/0', enabled: true },
+      { issn: '1520-4898', name: 'Accounts of Chemical Research', shortName: 'Acc. Chem. Res.', abbrev: 'Acc. Chem. Res.', publisher: 'ACS', discipline: 'General Chemistry', asapUrl: 'https://pubs.acs.org/toc/achre4/0/0', enabled: true },
+      { issn: '1460-4744', name: 'Chemical Society Reviews', shortName: 'Chem. Soc. Rev.', abbrev: 'Chem. Soc. Rev.', publisher: 'RSC', discipline: 'General Chemistry', asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/cs#!recentarticles&adv', enabled: true },
+      { issn: '2374-7951', name: 'ACS Central Science', shortName: 'ACS Cent. Sci.', abbrev: 'ACS Cent. Sci.', publisher: 'ACS', discipline: 'General Chemistry', asapUrl: 'https://pubs.acs.org/toc/acscii/0/0', enabled: true },
+      { issn: '1476-4660', name: 'Nature Materials', shortName: 'Nat. Mater.', abbrev: 'Nat. Mater.', publisher: 'Nature', discipline: 'Materials', asapUrl: 'https://www.nature.com/nmat/research-articles', enabled: true },
+      { issn: '1521-4095', name: 'Advanced Materials', shortName: 'Adv. Mater.', abbrev: 'Adv. Mater.', publisher: 'Wiley', discipline: 'Materials', asapUrl: 'https://onlinelibrary.wiley.com/toc/15214095/0/0', enabled: true },
+      { issn: '1477-9234', name: 'Dalton Transactions', shortName: 'Dalton Trans.', abbrev: 'Dalton Trans.', publisher: 'RSC', discipline: 'Inorganic', asapUrl: 'https://pubs.rsc.org/en/journals/journalissues/dt#!recentarticles&adv', enabled: true }
+    ];
+
+    const ISSN_DIRECTORY_CATALOG = [
+      { issn: '1520-5126', name: 'Journal of the American Chemical Society', abbrev: 'J. Am. Chem. Soc.', publisher: 'ACS', discipline: 'General Chemistry' },
+      { issn: '1520-6904', name: 'The Journal of Organic Chemistry', abbrev: 'J. Org. Chem.', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '1523-7052', name: 'Organic Letters', abbrev: 'Org. Lett.', publisher: 'ACS', discipline: 'Organic' },
+      { issn: '2155-5435', name: 'ACS Catalysis', abbrev: 'ACS Catal.', publisher: 'ACS', discipline: 'Catalysis' },
+      { issn: '1520-510X', name: 'Inorganic Chemistry', abbrev: 'Inorg. Chem.', publisher: 'ACS', discipline: 'Inorganic' },
+      { issn: '1520-6041', name: 'Organometallics', abbrev: 'Organometallics', publisher: 'ACS', discipline: 'Inorganic' },
+      { issn: '1520-586X', name: 'Organic Process Research & Development', abbrev: 'Org. Process Res. Dev.', publisher: 'ACS', discipline: 'Synthesis' },
+      { issn: '1520-5002', name: 'Chemistry of Materials', abbrev: 'Chem. Mater.', publisher: 'ACS', discipline: 'Materials' },
+      { issn: '1530-6992', name: 'Nano Letters', abbrev: 'Nano Lett.', publisher: 'ACS', discipline: 'Materials' },
+      { issn: '1936-086X', name: 'ACS Nano', abbrev: 'ACS Nano', publisher: 'ACS', discipline: 'Materials' },
+      { issn: '1521-3773', name: 'Angewandte Chemie International Edition', abbrev: 'Angew. Chem. Int. Ed.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1521-3765', name: 'Chemistry – A European Journal', abbrev: 'Chem. Eur. J.', publisher: 'Wiley', discipline: 'General Chemistry' },
+      { issn: '1615-4169', name: 'Advanced Synthesis & Catalysis', abbrev: 'Adv. Synth. Catal.', publisher: 'Wiley', discipline: 'Catalysis' },
+      { issn: '1521-4095', name: 'Advanced Materials', abbrev: 'Adv. Mater.', publisher: 'Wiley', discipline: 'Materials' },
+      { issn: '1867-3899', name: 'ChemCatChem', abbrev: 'ChemCatChem', publisher: 'Wiley', discipline: 'Catalysis' },
+      { issn: '1755-4349', name: 'Nature Chemistry', abbrev: 'Nat. Chem.', publisher: 'Nature', discipline: 'General Chemistry' },
+      { issn: '2520-1158', name: 'Nature Catalysis', abbrev: 'Nat. Catal.', publisher: 'Nature', discipline: 'Catalysis' },
+      { issn: '2731-0582', name: 'Nature Synthesis', abbrev: 'Nat. Synth.', publisher: 'Nature', discipline: 'Synthesis' },
+      { issn: '1476-4660', name: 'Nature Materials', abbrev: 'Nat. Mater.', publisher: 'Nature', discipline: 'Materials' },
+      { issn: '2041-1723', name: 'Nature Communications', abbrev: 'Nat. Commun.', publisher: 'Nature', discipline: 'General Chemistry' },
+      { issn: '2041-6539', name: 'Chemical Science', abbrev: 'Chem. Sci.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1364-548X', name: 'Chemical Communications', abbrev: 'Chem. Commun.', publisher: 'RSC', discipline: 'General Chemistry' },
+      { issn: '1477-9234', name: 'Dalton Transactions', abbrev: 'Dalton Trans.', publisher: 'RSC', discipline: 'Inorganic' },
+      { issn: '1477-0539', name: 'Organic & Biomolecular Chemistry', abbrev: 'Org. Biomol. Chem.', publisher: 'RSC', discipline: 'Organic' },
+      { issn: '2044-4761', name: 'Catalysis Science & Technology', abbrev: 'Catal. Sci. Technol.', publisher: 'RSC', discipline: 'Catalysis' },
+      { issn: '2046-2069', name: 'RSC Advances', abbrev: 'RSC Adv.', publisher: 'RSC', discipline: 'General Chemistry' }
+    ];
+
+    const FALLBACK_ARTICLES = [
+      {
+        doi: '10.1021/jacs.5c00001',
+        title: 'Photoredox-Mediated Enantioselective Cross-Electrophile Coupling of Unactivated Alkyl Halides',
+        plainTitle: 'Photoredox-Mediated Enantioselective Cross-Electrophile Coupling of Unactivated Alkyl Halides',
+        authors: ['Elena M. Vance', 'Kenji Takahashi', 'David W. MacMillan'],
+        issn: '1520-5126',
+        publishedDate: 'Recent ASAP',
+        timestamp: Date.now() - 3600000,
+        url: 'https://pubs.acs.org/toc/jacsat/0/0',
+        directImageUrl: null,
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1002/anie.202500002',
+        title: 'Modular Skeletal Editing of Pyridines via Dearomative Cycloaddition and Ring Contraction',
+        plainTitle: 'Modular Skeletal Editing of Pyridines via Dearomative Cycloaddition and Ring Contraction',
+        authors: ['Lukas Meyer', 'Sophie Laurent', 'Richmond Sarpong'],
+        issn: '1521-3773',
+        publishedDate: 'Recent ASAP',
+        timestamp: Date.now() - 7200000,
+        url: 'https://onlinelibrary.wiley.com/toc/15213773/0/0',
+        directImageUrl: null,
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1038/s41557-025-00003-x',
+        title: 'Single-Atom Nickel Catalysts on Porous Carbon Nitride for Selective Electrochemical CO<sub>2</sub> Reduction',
+        plainTitle: 'Single-Atom Nickel Catalysts on Porous Carbon Nitride for Selective Electrochemical CO2 Reduction',
+        authors: ['Wei Chen', 'Aisha Al-Mansoor', 'Beatriz Roldan Cuenya'],
+        issn: '1755-4349',
+        publishedDate: 'Recent ASAP',
+        timestamp: Date.now() - 10800000,
+        url: 'https://www.nature.com/nchem/research-articles',
+        directImageUrl: null,
+        type: 'journal-article',
+        isFallback: true
+      },
+      {
+        doi: '10.1039/D5SC00004A',
+        title: 'Main-Group Ambiphilic Activation of Small Molecules Using Bench-Stable Bismuthinidenes',
+        plainTitle: 'Main-Group Ambiphilic Activation of Small Molecules Using Bench-Stable Bismuthinidenes',
+        authors: ['Hannah R. Sterling', 'Mateo Silva', 'Josep Cornella'],
+        issn: '2041-6539',
+        publishedDate: 'Recent ASAP',
+        timestamp: Date.now() - 14400000,
+        url: 'https://pubs.rsc.org/en/journals/journalissues/sc#!recentarticles&adv',
+        directImageUrl: null,
+        type: 'journal-article',
+        isFallback: true
+      }
+    ];
+
+    const state = {
+      journals: [],
+      articles: [],
+      bookmarks: [],
+      selectedJournalIssn: 'ALL',
+      selectedPublisher: 'ALL',
+      selectedDiscipline: 'ALL',
+      searchQuery: '',
+      tabSearchQuery: '',
+      managerSearchQuery: '',
+      viewMode: 'cards',
+      showToc: true,
+      tocCache: {},
+      timeFilter: {
+        mode: 'latest',
+        specificDate: ''
+      },
+      isLoading: false,
+      usedFallback: false,
+      failedIssns: new Set()
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
+      initMobilePwaSetup();
       loadPersistedState();
       renderJournalTabs();
       renderFilterPills();
@@ -1132,7 +912,6 @@
       applyViewModeUI();
       lucide.createIcons();
 
-      // Debounced instant search listener
       let searchTimeout = null;
       const searchInput = document.getElementById('search-input');
       const clearSearchBtn = document.getElementById('clear-search-btn');
@@ -1146,16 +925,117 @@
         }, 120);
       });
 
-      // Keyboard Escape key to close drawers
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           closeAllDrawers();
+          closeInstallModal();
         }
       });
 
-      // Trigger live Crossref ASAP fetch
       fetchAllActiveJournals(false);
     });
+
+    let deferredInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const nativeBox = document.getElementById('native-install-box');
+      if (nativeBox) nativeBox.classList.remove('hidden');
+    });
+
+    function initMobilePwaSetup() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        const grad = ctx.createLinearGradient(0, 0, 512, 512);
+        grad.addColorStop(0, '#0a1628');
+        grad.addColorStop(1, '#0f766e');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 512, 512, 108);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 26;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        const cx = 256, cy = 228, r = 112;
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i - Math.PI / 2;
+          const x = cx + r * Math.cos(angle);
+          const y = cy + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 46, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#5eead4';
+        ctx.font = 'bold 54px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ASAP', 256, 428);
+
+        const iconDataUrl = canvas.toDataURL('image/png');
+        const appleIcon = document.getElementById('apple-touch-icon-link');
+        const favicon = document.getElementById('favicon-link');
+        if (appleIcon) appleIcon.href = iconDataUrl;
+        if (favicon) favicon.href = iconDataUrl;
+
+        const manifest = {
+          name: 'AubreyLab ASAP — Chemistry Journal Feed',
+          short_name: 'AubreyLab ASAP',
+          description: 'Peer-reviewed chemistry ASAP & early-view journal aggregator',
+          start_url: window.location.href,
+          display: 'standalone',
+          background_color: '#f8fafc',
+          theme_color: '#0a1628',
+          icons: [
+            { src: iconDataUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.getElementById('pwa-manifest-link');
+        if (manifestLink) manifestLink.href = manifestUrl;
+      } catch (e) {
+        console.warn('PWA icon/manifest setup skipped:', e);
+      }
+    }
+
+    function openInstallModal() {
+      const modal = document.getElementById('install-modal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeInstallModal() {
+      const modal = document.getElementById('install-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function triggerNativeInstall() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        showToast('Installing AubreyLab ASAP to your home screen!');
+        closeInstallModal();
+      }
+      deferredInstallPrompt = null;
+    }
 
     function loadPersistedState() {
       let baseList = [];
@@ -1166,7 +1046,6 @@
         baseList = structuredClone(DEFAULT_JOURNALS);
       }
 
-      // Always merge in permanently saved custom journals so they are never lost
       try {
         const savedCustom = localStorage.getItem(STORAGE_KEYS.CUSTOM_JOURNALS);
         const customList = savedCustom ? JSON.parse(savedCustom) : [];
@@ -1243,11 +1122,6 @@
       renderBookmarksDrawer();
     }
 
-    /**
-     * ============================================================================
-     * 4. LIVE CROSSREF API INTEGRATION (WITH TIME WINDOW QUERIES)
-     * ============================================================================
-     */
     function getIsoDateOffset(daysOffset = 0, yearsOffset = 0) {
       const d = new Date();
       if (yearsOffset !== 0) d.setFullYear(d.getFullYear() + yearsOffset);
@@ -1456,71 +1330,130 @@
       return null;
     }
 
-    async function fetchJournalWorks(journal) {
-      const bounds = computeTimeWindowBounds();
-      let filterParam = '';
-      if (bounds) {
-        filterParam = `&filter=from-pub-date:${bounds.from},until-pub-date:${bounds.until}`;
-      }
+    async function hydrateVisibleTocImages(articles) {
+      if (!state.showToc || !Array.isArray(articles) || articles.length === 0) return;
 
-      const rows = state.selectedJournalIssn === journal.issn ? 20 : 8;
-      const endpoint = `https://api.crossref.org/journals/${encodeURIComponent(journal.issn)}/works?sort=published&order=desc&rows=${rows}${filterParam}&mailto=chemasap-dashboard@example.org`;
-
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-        try {
-          const response = await fetch(endpoint, {
-            signal: controller.signal,
-            headers: { 'Accept': 'application/json' }
-          });
-          clearTimeout(timeoutId);
-
-          if (response.status === 429 && attempt === 0) {
-            await new Promise(r => setTimeout(r, 900));
-            continue;
-          }
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-
-          const data = await response.json();
-          const items = data?.message?.items || [];
-
-          return items
-            .filter(item => item.title && item.title.length > 0)
-            .map(item => normalizeCrossrefWork(item, journal));
-        } catch (err) {
-          clearTimeout(timeoutId);
-          if (attempt === 1) {
-            console.warn(`Crossref fetch failed for ${journal.abbrev} (${journal.issn}):`, err.message);
-            return null;
-          }
-          await new Promise(r => setTimeout(r, 600));
-        }
-      }
-      return null;
-    }
-
-    function hydrateVisibleTocImages(articles) {
-      if (!state.showToc) return;
-      articles.forEach(async (article) => {
-        if (!article.doi) return;
+      const targetArticles = articles.filter(a => a.doi && !a.isFallback).slice(0, 12);
+      await Promise.all(targetArticles.map(async (article) => {
         const resolvedUrl = await resolveTocImageForArticle(article);
-        if (!resolvedUrl || !state.showToc) return;
+        if (!resolvedUrl) return;
 
         const slots = document.querySelectorAll(`[data-toc-doi="${CSS.escape(article.doi)}"]`);
         slots.forEach(slot => {
-          slot.classList.remove('hidden');
           const img = slot.querySelector('img');
-          if (img && img.src !== resolvedUrl) {
+          if (img) {
             img.src = resolvedUrl;
           }
-          slot.dataset.hydrated = 'true';
+          slot.setAttribute('data-hydrated', 'true');
+          slot.classList.remove('hidden');
         });
+      }));
+    }
+
+    async function fetchJournalWorks(journal) {
+      if (!journal || !journal.issn) return [];
+
+      const isFocusedTab = state.selectedJournalIssn === journal.issn;
+      const bounds = computeTimeWindowBounds();
+      const rows = bounds ? 25 : (isFocusedTab ? 20 : 8);
+
+      const params = new URLSearchParams({
+        sort: 'published',
+        order: 'desc',
+        rows: String(rows),
+        mailto: 'aubreylab-asap@example.org'
       });
+
+      if (bounds) {
+        const filters = [`from-pub-date:${bounds.from}`];
+        if (bounds.until) {
+          filters.push(`until-pub-date:${bounds.until}`);
+        }
+        params.set('filter', filters.join(','));
+      }
+
+      const url = `https://api.crossref.org/journals/${encodeURIComponent(journal.issn)}/works?${params.toString()}`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Crossref HTTP ${response.status} for ${journal.issn}`);
+        }
+        const data = await response.json();
+        const items = Array.isArray(data?.message?.items) ? data.message.items : [];
+        return items.map(item => normalizeCrossrefWork(item, journal));
+      } catch (err) {
+        console.warn(`Failed to fetch works for ${journal.abbrev} (${journal.issn}):`, err);
+        return null;
+      }
+    }
+
+    function getJournalByIssn(issn) {
+      const found = state.journals.find(j => j.issn === issn);
+      if (found) return found;
+      const catalogMatch = ISSN_DIRECTORY_CATALOG.find(j => j.issn === issn);
+      if (catalogMatch) {
+        return {
+          ...catalogMatch,
+          shortName: catalogMatch.abbrev,
+          asapUrl: `https://search.crossref.org/?q=${encodeURIComponent(issn)}&from_ui=yes`,
+          enabled: true,
+          custom: false
+        };
+      }
+      return {
+        issn,
+        name: `Journal (${issn})`,
+        shortName: issn,
+        abbrev: issn,
+        publisher: 'Other',
+        discipline: 'General Chemistry',
+        asapUrl: `https://search.crossref.org/?q=${encodeURIComponent(issn)}&from_ui=yes`,
+        enabled: true,
+        custom: true
+      };
+    }
+
+    function getPublisherBadgeStyle(publisher) {
+      switch (publisher) {
+        case 'ACS':
+          return 'bg-amber-50 text-amber-800 border-amber-200';
+        case 'Wiley':
+          return 'bg-sky-50 text-sky-800 border-sky-200';
+        case 'Nature':
+          return 'bg-rose-50 text-rose-800 border-rose-200';
+        case 'RSC':
+          return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+        case 'AAAS':
+          return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+        case 'NAS':
+          return 'bg-purple-50 text-purple-800 border-purple-200';
+        case 'Cell Press':
+          return 'bg-cyan-50 text-cyan-800 border-cyan-200';
+        default:
+          return 'bg-slate-100 text-slate-700 border-slate-200';
+      }
+    }
+
+    function getPublisherDotColor(publisher) {
+      switch (publisher) {
+        case 'ACS':
+          return 'bg-amber-500';
+        case 'Wiley':
+          return 'bg-sky-500';
+        case 'Nature':
+          return 'bg-rose-500';
+        case 'RSC':
+          return 'bg-emerald-500';
+        case 'AAAS':
+          return 'bg-indigo-500';
+        case 'NAS':
+          return 'bg-purple-500';
+        case 'Cell Press':
+          return 'bg-cyan-500';
+        default:
+          return 'bg-slate-400';
+      }
     }
 
     function isBookmarked(doi) {
@@ -1663,7 +1596,6 @@
       }
 
       try {
-        // Prioritize the currently selected journal tab first, then fetch others in small batches to avoid Crossref rate limits
         const prioritized = [...activeJournals].sort((a, b) =>
           a.issn === state.selectedJournalIssn ? -1 : b.issn === state.selectedJournalIssn ? 1 : 0
         );
@@ -1691,7 +1623,6 @@
         const bounds = computeTimeWindowBounds();
         if (combined.length > 0) {
           if (!bounds && state.failedIssns.size > 0) {
-            // Fill in cached fallback items only for journals that were rate-limited
             const fallbackForFailed = FALLBACK_ARTICLES.filter(a => state.failedIssns.has(a.issn));
             combined.push(...fallbackForFailed);
           }
@@ -1762,51 +1693,6 @@
       });
     }
 
-    function getJournalByIssn(issn) {
-      return (
-        state.journals.find(j => j.issn === issn) ||
-        DEFAULT_JOURNALS.find(j => j.issn === issn) || {
-          issn,
-          name: `Journal (${issn})`,
-          shortName: issn,
-          abbrev: issn,
-          publisher: 'Other',
-          discipline: 'General Chemistry',
-          asapUrl: 'https://www.crossref.org/'
-        }
-      );
-    }
-
-    function getPublisherBadgeStyle(publisher) {
-      switch (publisher) {
-        case 'ACS':
-          return 'bg-amber-50 text-amber-800 border-amber-200';
-        case 'Wiley':
-          return 'bg-sky-50 text-sky-800 border-sky-200';
-        case 'Nature':
-          return 'bg-rose-50 text-rose-800 border-rose-200';
-        case 'RSC':
-          return 'bg-emerald-50 text-emerald-800 border-emerald-200';
-        default:
-          return 'bg-slate-100 text-slate-700 border-slate-200';
-      }
-    }
-
-    function getPublisherDotColor(publisher) {
-      switch (publisher) {
-        case 'ACS':
-          return 'bg-amber-500';
-        case 'Wiley':
-          return 'bg-sky-500';
-        case 'Nature':
-          return 'bg-rose-500';
-        case 'RSC':
-          return 'bg-emerald-500';
-        default:
-          return 'bg-slate-400';
-      }
-    }
-
     function renderCardsView(articles, container) {
       container.innerHTML = articles.map(article => {
         const journal = getJournalByIssn(article.issn);
@@ -1840,7 +1726,6 @@
                 </span>
               </div>
 
-              <!-- Title + Optional Table of Contents (TOI) Graphic -->
               <div class="flex items-start gap-3 mb-2.5">
                 <div class="flex-1 min-w-0">
                   <h2 class="article-title text-[15px] font-semibold text-slate-900 leading-snug group-hover:text-teal-800 transition">
@@ -2030,11 +1915,6 @@
       }).join('');
     }
 
-    /**
-     * ============================================================================
-     * 6. TOP JOURNAL TABS, FILTER PILLS & VIEW SWITCHER
-     * ============================================================================
-     */
     function renderJournalTabs() {
       const container = document.getElementById('journal-tabs-bar');
       if (!container) return;
@@ -2173,13 +2053,11 @@
       updateTabContextBar();
       renderFilterPills();
 
-      // Smoothly scroll the selected tab into center view
       const activeBtn = document.querySelector(`[data-tab-issn="${CSS.escape(issn)}"]`);
       if (activeBtn) {
         activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       }
 
-      // Fetch deeper 20-article list when switching into a specific journal tab
       if (issn !== 'ALL' && previousIssn !== issn) {
         fetchAllActiveJournals(false);
       } else {
@@ -2391,11 +2269,6 @@
       }
     }
 
-    /**
-     * ============================================================================
-     * 7. JOURNAL FEED MANAGER (TOGGLE, REORDER & ADD PERMANENT CUSTOM ISSN)
-     * ============================================================================
-     */
     function updateJournalManagerList(filterQuery) {
       if (typeof filterQuery === 'string') {
         state.managerSearchQuery = filterQuery.trim();
@@ -2471,7 +2344,6 @@
         const [target] = state.journals.splice(idx, 1);
         target.enabled = enabled;
         if (enabled) {
-          // Place re-checked journal at the end of currently checked journals
           const firstUncheckedIdx = state.journals.findIndex(j => !j.enabled);
           if (firstUncheckedIdx === -1) {
             state.journals.push(target);
@@ -2479,7 +2351,6 @@
             state.journals.splice(firstUncheckedIdx, 0, target);
           }
         } else {
-          // Move unchecked journal to the very bottom of the list
           state.journals.push(target);
         }
         saveJournals();
@@ -2674,7 +2545,6 @@
       const discipline = document.getElementById('custom-discipline-select').value;
       const btn = document.getElementById('add-issn-btn');
 
-      // Format ISSN (e.g., 1520586X -> 1520-586X)
       let raw = input.value.trim().toUpperCase().replace(/[^0-9X]/g, '');
       if (raw.length === 8) {
         raw = `${raw.slice(0, 4)}-${raw.slice(4)}`;
@@ -2740,7 +2610,6 @@
           custom: true
         };
 
-        // Insert near the front (right after 'All Journals') so it's immediately visible on the tab bar
         state.journals.unshift(newJournal);
         saveJournals();
         input.value = '';
@@ -2751,7 +2620,6 @@
         closeAllDrawers();
         showToast(`Permanently added "${displayAbbrev}" (${raw}) to your top tabs!`);
 
-        // Fetch this journal's works directly without being blocked by global isLoading
         const items = await fetchJournalWorks(newJournal);
         if (Array.isArray(items)) {
           state.articles = [...items, ...state.articles.filter(a => a.issn !== raw)];
@@ -2769,11 +2637,6 @@
       }
     }
 
-    /**
-     * ============================================================================
-     * 8. BOOKMARKS / READING LIST & CITATION EXPORT (BIBTEX / RIS)
-     * ============================================================================
-     */
     function toggleBookmark(doi) {
       if (!doi) return;
       const existingIdx = state.bookmarks.findIndex(b => b.doi === doi);
@@ -2932,11 +2795,6 @@ ER  -`;
       showToast(`Downloaded ${state.bookmarks.length} citations (.${ext.toUpperCase()})`);
     }
 
-    /**
-     * ============================================================================
-     * 9. DRAWER NAVIGATION & UTILITIES
-     * ============================================================================
-     */
     function openDrawer(type) {
       closeAllDrawers(false);
       const backdrop = document.getElementById('drawer-backdrop');
@@ -3013,7 +2871,6 @@ ER  -`;
     }
 
     function sanitizeBasicHtml(html) {
-      // Preserve chemical formula sub/sup/i tags from Crossref while stripping anything else
       const allowed = html
         .replace(/<(?!\/?(sub|sup|i|em|b|strong)\b)[^>]+>/gi, '');
       return allowed;
